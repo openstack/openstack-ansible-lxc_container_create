@@ -16,6 +16,18 @@
 - name: Playbook for pre-role testing
   hosts: localhost
   connection: local
+  pre_tasks:
+    - name: Ensure root ssh key
+      user:
+        name: "{{ ansible_env.USER | default('root') }}"
+        generate_ssh_key: "yes"
+        ssh_key_bits: 2048
+        ssh_key_file: ".ssh/id_rsa"
+    - name: get the calling users key
+      command: cat ~/.ssh/id_rsa.pub
+      register: key_get
+    - set_fact:
+        lxc_container_ssh_key: key_get.stdout
   roles:
     - role: "lxc_hosts"
       lxc_net_address: 10.100.100.1
@@ -51,6 +63,7 @@
         hostname: "{{ item.name }}"
         inventory_hostname: "{{ item.name }}"
         ansible_ssh_host: "{{ item.address }}"
+        ansible_become: true
         properties:
           service_name: "{{ item.service }}"
         container_networks:
@@ -82,7 +95,9 @@
       register: lxc_containers
     - name: Format output
       set_fact:
-        lxc_output: "{{ lxc_containers.stdout | replace('  ', ' ') | lower }}"
+        _lxc_output: "{{ lxc_containers.stdout.split() | lower }}"
+    - set_fact:
+        lxc_output: "{{ _lxc_output | join(' ') }}"
     - name: Check role functions
       assert:
         that:
