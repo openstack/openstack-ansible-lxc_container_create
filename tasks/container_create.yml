@@ -26,7 +26,6 @@
   set_fact:
      lxc_container_backing_store: dir
   when: vg_result.rc != 0
-  delegate_to: "{{ physical_host }}"
   tags:
     - lxc-container-vg-detect
 
