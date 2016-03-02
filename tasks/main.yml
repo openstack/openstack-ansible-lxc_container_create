@@ -14,9 +14,9 @@
 # limitations under the License.
 
 - include: container_create.yml
-  when: >
-    physical_host is defined and
-    inventory_hostname is defined and
-    physical_host != inventory_hostname
+  when:
+    - physical_host is defined
+    - inventory_hostname is defined
+    - physical_host != inventory_hostname
   tags:
     - lxc-container
