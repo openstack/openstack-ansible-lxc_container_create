@@ -17,6 +17,9 @@
   hosts: localhost
   connection: local
   pre_tasks:
+    - name: First ensure apt cache is always refreshed
+      apt:
+        update_cache: yes
     - name: Ensure root ssh key
       user:
         name: "{{ ansible_env.USER | default('root') }}"
@@ -84,17 +87,20 @@
       lxc_container_backing_store: dir
       global_environment_variables:
         PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-  post_tasks:
-    - name: Confirm containers were created
-      command: lxc-ls -f
-      register: lxc_containers
-    - name: Format output
-      set_fact:
-        _lxc_output: "{{ lxc_containers.stdout.split() | lower }}"
-    - set_fact:
-        lxc_output: "{{ _lxc_output | join(' ') }}"
-    - name: Check role functions
+
+- name: Test whether the role produced expected results
+  hosts: localhost
+  tasks:
+    - name: List the running LXC containers present on the host
+      command: lxc-ls -1 --fancy --fancy-format name,ipv4 --running
+      register: lxc_container_list
+    - name: Verify that the expected containers are present with the correct addresses
+      # Example stdout:
+      # NAME        IPV4
+      # ---------------------------------------
+      # container1  172.16.12.3, 10.100.100.101
+      # container2  10.100.100.102, 172.16.12.4
       assert:
         that:
-          - "'container1 running 10.100.100.101' in lxc_output"
-          - "'container2 running 10.100.100.102' in lxc_output"
+          - lxc_container_list.stdout | search("container1\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3},\s+)*10.100.100.101(,\s+\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})*\s+")
+          - lxc_container_list.stdout | search("container2\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3},\s+)*10.100.100.102(,\s+\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})*\s+")
