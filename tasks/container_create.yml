@@ -201,17 +201,11 @@
   tags:
     - lxc-container-user-password-regen
 
-# Setup proxy configs, this is done here to ensure that we have our container proxy setup
-#  prior to running online commands. This is using lxc_container because python2.7 may not be
-#  installed at this point.
-- name: Run proxy config
-  lxc_container:
-    name: "{{ inventory_hostname }}"
-    container_command: |
-      if ! grep '{{ item.key }}={{ item.value }}' /etc/environment; then
-        echo '{{ item.key }}={{ item.value }}' | tee -a /etc/environment
-      fi
-  with_dict: "{{ global_environment_variables | default({}) }}"
-  delegate_to: "{{ physical_host }}"
+- name: Install container proxy settings
+  template:
+    dest: "/etc/environment"
+    src: "environment.j2"
+    mode: "0644"
+  remote_user: root
   tags:
     - lxc-container-proxy
