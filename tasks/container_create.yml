@@ -212,7 +212,6 @@
         echo '{{ item.key }}={{ item.value }}' | tee -a /etc/environment
       fi
   with_dict: "{{ global_environment_variables | default({}) }}"
-  when: global_environment_variables is defined
   delegate_to: "{{ physical_host }}"
   tags:
     - lxc-container-proxy
