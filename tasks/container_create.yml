@@ -57,61 +57,43 @@
   lxc_container:
     name: "{{ inventory_hostname }}"
     container_log: "true"
-    config: "{{ properties.container_config|default(lxc_container_config) }}"
-    template: "{{ properties.container_template|default(lxc_container_template) }}"
+    config: "{{ lxc_container_config }}"
+    template: "{{ lxc_container_template }}"
     state: started
-    backing_store: "{{ properties.container_backing_store|default(lxc_container_backing_store) }}"
+    backing_store: "{{ lxc_container_backing_store }}"
     directory: "{{ lxc_container_rootfs_directory }}"
-    fs_size: "{{ properties.container_fs_size|default(lxc_container_fs_size) }}"
-    fs_type: "{{ properties.container_fs_type|default(lxc_container_fs_type) }}"
-    vg_name: "{{ properties.container_vg_name|default(lxc_container_vg_name) }}"
-    template_options: "{{ lxc_container_template_options }}"
-    container_command: |
-      if [ -f  "/usr/lib/systemd/system/poweroff.target" ];then
-        ln -sf /usr/lib/systemd/system/poweroff.target /etc/systemd/system/sigpwr.target || true
-      fi
-      ln -s /dev/null /etc/systemd/system/systemd-udevd.service || true
-      ln -s /dev/null /etc/systemd/system/systemd-udevd-control.socket || true
-      ln -s /dev/null /etc/systemd/system/systemd-udevd-kernel.socket || true
-      ln -s /dev/null /etc/systemd/system/proc-sys-fs-binfmt_misc.automount || true
-      echo -e '{{ lxc_container_default_interfaces }}' | tee /etc/network/interfaces
+    fs_size: "{{ lxc_container_fs_size }}"
+    fs_type: "{{ lxc_container_fs_type }}"
+    vg_name: "{{ lxc_container_vg_name }}"
+    template_options: "{{ lxc_container_download_template_options }}"
+    container_command: "{{ lxc_container_map.prep_commands }}"
     container_config:
       - "lxc.autodev=1"
       - "lxc.pts=1024"
       - "lxc.kmsg=0"
       - "lxc.hook.autodev=/var/lib/lxc/{{ inventory_hostname }}/autodev"
+      - "lxc.mount.entry=/openstack/backup/{{ inventory_hostname }} var/backup none defaults,bind,rw 0 0"
   delegate_to: "{{ physical_host }}"
   tags:
     - lxc-container-create
-
-- name: Load container service mounts and profile
-  lxc_container:
-    name: "{{ inventory_hostname }}"
-    container_command: |
-      mkdir -p /var/backup
-      mkdir -p /var/log/{{ properties.service_name }}
-    container_config:
-      - "lxc.mount.entry=/openstack/backup/{{ inventory_hostname }} var/backup none defaults,bind,rw 0 0"
-      - "lxc.mount.entry=/openstack/log/{{ inventory_hostname }} var/log/{{ properties.service_name }} none defaults,bind,rw 0 0"
-  when: properties.service_name is defined
-  delegate_to: "{{ physical_host }}"
-  tags:
-    - lxc-container-service-config
 
 - name: Container network interfaces
   lxc_container:
     name: "{{ inventory_hostname }}"
     container_command: |
-      if [ ! -d "/etc/network/interfaces.d" ];then
-        mkdir -p /etc/network/interfaces.d
-      fi
-      configmd5sum=$(md5sum /etc/network/interfaces.d/{{ item.value.interface }}.cfg 2>/dev/null)
-      echo -e '{{ lxc_container_interface }}' | tee /etc/network/interfaces.d/{{ item.value.interface }}.cfg
-      if ! md5sum -c --status <<< "$configmd5sum" 2>/dev/null; then
-        ifdown {{ item.value.interface }}
-        ifup {{ item.value.interface }}
-      fi
-  with_dict: "{{ container_networks|default({}) }}"
+      echo -e '{{ lxc_container_interface }}' | tee {{ lxc_container_interface_target }}
+  with_dict: container_networks|default({})
+  delegate_to: "{{ physical_host }}"
+  tags:
+    - lxc-container-networks
+
+- name: Container network route interfaces
+  lxc_container:
+    name: "{{ inventory_hostname }}"
+    container_command: |
+      echo -e '{{ lxc_container_default_route_interfaces.route_setup }}' | tee {{ lxc_container_default_route_interfaces.route_file }}
+  when: item.value.static_routes is defined
+  with_dict: container_networks|default({})
   delegate_to: "{{ physical_host }}"
   tags:
     - lxc-container-networks
@@ -123,7 +105,7 @@
     owner: "root"
     group: "root"
     mode: "0644"
-  with_dict: "{{ container_networks|default({}) }}"
+  with_dict: container_networks|default({})
   notify:
     - Lxc container restart
   delegate_to: "{{ physical_host }}"
@@ -148,9 +130,9 @@
     dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
     line: "lxc.include = /var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}.ini"
     backup: "true"
-  with_dict: "{{ container_networks|default({}) }}"
-  when:
-    - item.value.interface is defined
+  with_dict: container_networks|default({})
+  when: >
+    item.value.interface is defined
   notify:
     - Lxc container restart
   delegate_to: "{{ physical_host }}"
@@ -188,18 +170,15 @@
 # Flush the handlers to ensure the container and networking is online.
 - meta: flush_handlers
 
-# Resets the container user's password using lxc_container because Python2.7
-#  may not be installed at this point.
-- name: Force container user password set
-  lxc_container:
-    name: "{{ inventory_hostname }}"
-    container_command: |
-      getent passwd "{{ lxc_container_user_name }}" &&
-      echo "{{ lxc_container_user_name }}:{{ lxc_container_user_password }}" | chpasswd
-  delegate_to: "{{ physical_host }}"
-  no_log: True
+- name: Wait for ssh to be available
+  local_action:
+    module: wait_for
+    port: "{{ ansible_ssh_port | default('22') }}"
+    host: "{{ ansible_ssh_host | default(inventory_hostname) }}"
+    search_regex: OpenSSH
+    delay: 1
   tags:
-    - lxc-container-user-password-regen
+    - lxc-container-networks
 
 - name: Install container proxy settings
   template:

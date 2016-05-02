@@ -1,0 +1,71 @@
+---
+
+# Note this is a used in an iterable and requires the <item.value.interface> variable
+#   The container interface variable is a a default object that assume the
+#   Ansible iterator type is `with_dict`.
+lxc_container_interface: |
+  ### start generated network for [ {{ item.value.interface }} ] ###
+  auto {{ item.value.interface }}
+  {% if item.value.address is defined %}
+  iface {{ item.value.interface }} inet static
+      address {{ item.value.address }}
+      netmask {{ item.value.netmask }}
+  {% if item.value.gateway is defined %}
+      gateway {{ item.value.gateway }}
+  {% endif %}
+      mtu {{ item.value.mtu|default(lxc_container_default_mtu) }}
+      # needed to enable gratuitous arps on interface events
+      post-up sysctl -w net.ipv4.conf.$IFACE.arp_notify=1
+      # needed to force an interface event (setting mac to what it already is)
+      post-up ip link set $IFACE address $(cat /sys/class/net/$IFACE/address)
+  {% if item.value.static_routes is defined %}
+  {% for route in item.value.static_routes %}
+      post-up ip route add {{ route['cidr'] }} via {{ route['gateway'] }} || true
+  {% endfor %}
+  {% endif %}
+  {% else %}
+  iface {{ item.value.interface }} inet manual
+  {% endif %}
+  ### end generated network for [ {{ item.value.interface }} ] ###
+
+# Default interface file
+lxc_container_default_interfaces: |
+  # The loopback network interface
+  auto lo
+  iface lo inet loopback
+  # LXC interface, this is ALWAYS assumed to be DHCP.
+  auto eth0
+  iface eth0 inet dhcp
+  # Load any additional configs
+  source /etc/network/interfaces.d/*.cfg
+
+# Notice this is already resolved in the debian interface file
+lxc_container_default_route_interfaces:
+  route_file: "/dev/null"
+  route_setup: "This is already resolved in the debian interface file"
+
+# Note this is a used in an iterable and requires the <item.value.interface> variable
+lxc_container_interface_target: "/etc/network/interfaces.d/{{ item.value.interface }}.cfg"
+
+lxc_container_map:
+  distro: ubuntu
+  arch: amd64
+  release: xenial
+  prep_commands: |
+    mkdir -p /var/backup
+    echo '# Null Tail' | tee /etc/resolvconf/resolv.conf.d/tail
+    echo '# Null original' | tee /etc/resolvconf/resolv.conf.d/original
+    rm /etc/resolvconf/resolv.conf.d/base
+    {% for resolver in lxc_cache_resolvers %}
+    echo 'nameserver {{ resolver }}' | tee -a /etc/resolvconf/resolv.conf.d/base
+    {% endfor %}
+    if [ -f  "/usr/lib/systemd/system/poweroff.target" ];then
+      ln -sf /usr/lib/systemd/system/poweroff.target /etc/systemd/system/sigpwr.target || true
+    fi
+    ln -s /dev/null /etc/systemd/system/systemd-udevd.service || true
+    ln -s /dev/null /etc/systemd/system/systemd-udevd-control.socket || true
+    ln -s /dev/null /etc/systemd/system/systemd-udevd-kernel.socket || true
+    ln -s /dev/null /etc/systemd/system/proc-sys-fs-binfmt_misc.automount || true
+    echo -e '{{ lxc_container_default_interfaces }}' | tee /etc/network/interfaces
+    mkdir -p /etc/network/interfaces.d
+    chage -I -1 -d -1 -m 0 -M 99999 -E -1 root

@@ -3,7 +3,8 @@ OpenStack LXC container create
 :tags: openstack, lxc, container, cloud, ansible
 :category: \*nix
 
-Role for creating LXC containers. This role has been setup for use in OpenStack. This role will create several directories on the LXC host for use in bind mounted storage within the container. 
+Role for creating LXC containers. This role has been setup for use in OpenStack. This role will
+create several directories on the LXC host for use in bind mounted storage within the container.
 
 Example Play:
     .. code-block:: yaml
@@ -51,10 +52,6 @@ Example Inventory:
                                 "netmask": "255.255.252.0",
                                 "type": "veth"
                             }
-                        },
-                        "properties": {
-                            "container_release": "trusty",
-                            "is_metal": true
                         }
                     },
                     "container1": {
@@ -71,10 +68,7 @@ Example Inventory:
                             }
                         },
                         "physical_host": "infra1",
-                        "physical_host_group": "lxc_hosts",
-                        "properties": {
-                            "container_release": "trusty",
-                        }
+                        "physical_host_group": "lxc_hosts"
                     }
                 }
             }

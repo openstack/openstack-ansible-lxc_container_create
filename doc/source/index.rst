@@ -12,5 +12,4 @@ Basic Role Example
 .. code-block:: yaml
 
     - role: "lxc_container_create"
-      lxc_container_release: trusty
       lxc_container_backing_store: dir
