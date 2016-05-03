@@ -207,5 +207,7 @@
     src: "environment.j2"
     mode: "0644"
   remote_user: root
+  when:
+    - global_environment_variables is defined
   tags:
     - lxc-container-proxy
