@@ -15,9 +15,6 @@
 
 lxc_container_config: /etc/lxc/lxc-openstack.conf
 
-# Default container template to build from
-lxc_container_template: ubuntu
-
 # lxc container rootfs directory and cache path
 lxc_container_directory: "/var/lib/lxc"
 lxc_container_cache_path: "/var/cache/lxc"
@@ -32,51 +29,31 @@ lxc_container_fs_type: ext4
 lxc_container_backing_store: lvm
 lxc_container_vg_name: lxc
 
-# Default image to build from
-lxc_container_release: trusty
-lxc_container_user_name: ubuntu
-lxc_container_user_password: "{{ lookup('pipe', 'date --rfc-3339=ns | sha512sum | base64 | head -c 32') }}"
-lxc_container_template_options: >
-  --release {{ lxc_container_release }}
-  --user {{ lxc_container_user_name }}
-  --password {{ lxc_container_user_password }}
-
-lxc_container_template_main_apt_repo: "https://mirror.rackspace.com/ubuntu"
-lxc_container_template_security_apt_repo: "https://mirror.rackspace.com/ubuntu"
-
-lxc_container_default_interfaces: |
-  # The loopback network interface
-  auto lo
-  iface lo inet loopback
-  # LXC interface, this is ALWAYS assumed to be DHCP.
-  auto eth0
-  iface eth0 inet dhcp
-  # Load any additional configs
-  source /etc/network/interfaces.d/*.cfg
-
 lxc_container_default_mtu: "1500"
-# The container interface variable is a a default object that assume the
-# Ansible iterator type is `with_dict`.
-lxc_container_interface: |
-  ### start generated network for [ {{ item.value.interface }} ] ###
-  auto {{ item.value.interface }}
-  {% if item.value.address is defined %}
-  iface {{ item.value.interface }} inet static
-      address {{ item.value.address }}
-      netmask {{ item.value.netmask }}
-      # needed to enable gratuitous arps on interface events
-      post-up sysctl -w net.ipv4.conf.$IFACE.arp_notify=1
-      # needed to force an interface event (setting mac to what it already is)
-      post-up ip link set $IFACE address $(cat /sys/class/net/$IFACE/address)
-  {% if item.value.gateway is defined %}
-      gateway {{ item.value.gateway }}
-  {% endif %}
-  {% if item.value.static_routes is defined %}
-  {% for route in item.value.static_routes %}
-      post-up ip route add {{ route['cidr'] }} via {{ route['gateway'] }} || true
-  {% endfor %}
-  {% endif %}
-  {% else %}
-  iface {{ item.value.interface }} inet manual
-  {% endif %}
-  ### end generated network for [ {{ item.value.interface }} ] ###
+
+# LXC image server
+lxc_image_cache_server: images.linuxcontainers.org
+
+## Default download template options
+##  This can be customized to use a local build server and options.
+##  By default these options will be fulfilled by the distro specific
+##  variable files found in vars/
+# lxc_container_download_template_options: >
+#   --dist NAME_OF_DISTRO
+#   --release DISTRO_RELEASE
+#   --arch CONTAINER_ARCH
+#   --force-cache
+#   --server SERVER_TO_GET_IMAGES_FROM
+lxc_container_template: download
+lxc_container_variant: default
+lxc_container_download_template_options: >
+  --dist {{ lxc_container_map.distro }}
+  --release {{ lxc_container_map.release }}
+  --arch {{ lxc_container_map.arch }}
+  --force-cache
+  --server {{ lxc_image_cache_server }}
+  --variant={{ lxc_container_variant }}
+
+lxc_cache_resolvers:
+  - 'nameserver 8.8.8.8'
+  - 'nameserver 8.8.4.4'

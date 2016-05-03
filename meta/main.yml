@@ -18,11 +18,15 @@ galaxy_info:
   description: Create an LXC container
   company: Rackspace
   license: Apache2
-  min_ansible_version: 1.6.6
+  min_ansible_version: 1.9.4
   platforms:
     - name: Ubuntu
       versions:
         - trusty
+        - xenial
+    - name: EL
+      versions:
+        - 7
   categories:
     - cloud
     - lxc

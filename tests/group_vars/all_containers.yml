@@ -15,6 +15,7 @@
 
 ansible_ssh_host: "{{ ansible_host }}"
 container_name: "{{ inventory_hostname }}"
+
 container_networks:
   management_address:
     address: "{{ ansible_host }}"
@@ -22,6 +23,14 @@ container_networks:
     interface: "eth1"
     netmask: "255.255.252.0"
     type: "veth"
+    static_routes:
+      - cidr: 10.100.100.0/24
+        gateway: 10.100.100.1
+
 physical_host: localhost
+
 properties:
   service_name: "{{ inventory_hostname }}"
+
+global_environment_variables:
+  PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"

@@ -16,6 +16,27 @@
 - name: Playbook for creating containers
   hosts: all_containers
   gather_facts: false
+  pre_tasks:
+    - name: Destroy test containers
+      lxc_container:
+        name: "{{ container_name }}"
+        state: "absent"
+      delegate_to: "{{ physical_host }}"
+      tags:
+        - container-destroy
+    - name: Destroy container service directories
+      file:
+        path: "{{ item }}"
+        state: "absent"
+      with_items:
+        - "/openstack/{{ container_name }}"
+        - "/openstack/backup/{{ container_name }}"
+        - "/openstack/log/{{ container_name }}"
+        - "/var/lib/lxc/{{ container_name }}"
+        - "{{ lxc_container_directory|default('/var/lib/lxc') }}/{{ container_name }}"
+      delegate_to: "{{ physical_host }}"
+      tags:
+        - container-directories
   roles:
     - role: "{{ rolename | basename }}"
       lxc_container_release: trusty
