@@ -31,6 +31,8 @@ lxc_container_vg_name: lxc
 
 lxc_container_default_mtu: "1500"
 
+lxc_container_domain: "openstack.local"
+
 # LXC image server
 lxc_image_cache_server: images.linuxcontainers.org
 
