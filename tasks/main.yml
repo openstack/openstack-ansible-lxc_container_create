@@ -20,7 +20,6 @@
     - "{{ hostvars[physical_host]['ansible_distribution'] | lower }}.yml"
     - "{{ hostvars[physical_host]['ansible_os_family'] | lower }}-{{ hostvars[physical_host]['ansible_distribution_version'].split('.')[0] }}.yml"
     - "{{ hostvars[physical_host]['ansible_os_family'] | lower }}.yml"
-  delegate_to: "{{ physical_host }}"
   tags:
     - always
 
