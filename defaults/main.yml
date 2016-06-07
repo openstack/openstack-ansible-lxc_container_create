@@ -55,7 +55,3 @@ lxc_container_download_template_options: >
   --force-cache
   --server {{ lxc_image_cache_server }}
   --variant={{ lxc_container_variant }}
-
-lxc_cache_resolvers:
-  - 'nameserver 8.8.8.8'
-  - 'nameserver 8.8.4.4'

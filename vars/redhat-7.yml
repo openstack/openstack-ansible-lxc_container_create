@@ -45,10 +45,6 @@ lxc_container_map:
   release: 7
   prep_commands: |
     mkdir -p /var/backup
-    rm /etc/resolv.conf
-    {% for resolver in lxc_cache_resolvers %}
-    echo "{{ resolver }}" | tee -a /etc/resolv.conf
-    {% endfor %}
     if [ -f  "/usr/lib/systemd/system/poweroff.target" ];then
       ln -sf /usr/lib/systemd/system/poweroff.target /etc/systemd/system/sigpwr.target || true
     fi

@@ -53,12 +53,6 @@ lxc_container_map:
   release: trusty
   prep_commands: |
     mkdir -p /var/backup
-    echo '# Null Tail' | tee /etc/resolvconf/resolv.conf.d/tail
-    echo '# Null original' | tee /etc/resolvconf/resolv.conf.d/original
-    rm /etc/resolvconf/resolv.conf.d/base
-    {% for resolver in lxc_cache_resolvers %}
-    echo 'nameserver {{ resolver }}' | tee -a /etc/resolvconf/resolv.conf.d/base
-    {% endfor %}
     if [ -f  "/usr/lib/systemd/system/poweroff.target" ];then
       ln -sf /usr/lib/systemd/system/poweroff.target /etc/systemd/system/sigpwr.target || true
     fi
