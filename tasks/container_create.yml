@@ -19,13 +19,14 @@
   failed_when: false
   changed_when: vg_result.rc != 0
   delegate_to: "{{ physical_host }}"
+  when: lxc_container_backing_store is not defined or lxc_container_backing_store == "lvm"
   tags:
     - lxc-container-vg-detect
 
-- name: Set container backend "dir" if "lvm" not found
+- name: Set container backend to "dir" or "lvm" based on whether the lxc VG was found
   set_fact:
-     lxc_container_backing_store: dir
-  when: vg_result.rc != 0
+     lxc_container_backing_store: "{{ (vg_result.rc != 0) | ternary('dir', 'lvm') }}"
+  when: vg_result.rc is defined
   tags:
     - lxc-container-vg-detect
 
@@ -62,7 +63,7 @@
     state: started
     backing_store: "{{ lxc_container_backing_store }}"
     directory: "{{ lxc_container_rootfs_directory }}"
-    fs_size: "{{ lxc_container_fs_size }}"
+    fs_size: "{{ properties.container_fs_size | default(lxc_container_fs_size) }}"
     fs_type: "{{ lxc_container_fs_type }}"
     vg_name: "{{ lxc_container_vg_name }}"
     template_options: "{{ lxc_container_download_template_options }}"
@@ -74,8 +75,61 @@
       - "lxc.hook.autodev=/var/lib/lxc/{{ inventory_hostname }}/autodev"
       - "lxc.mount.entry=/openstack/backup/{{ inventory_hostname }} var/backup none defaults,bind,rw 0 0"
   delegate_to: "{{ physical_host }}"
+  when:
+    - lxc_container_backing_store != "overlayfs"
   tags:
     - lxc-container-create
+
+# Due to https://github.com/ansible/ansible-modules-extras/issues/2577 the
+# next two tasks do not use the lxc_container module.
+# TODO(odyssey4me): Revisit this once a fix has merged
+- name: Check if container exists (overlayfs)
+  command: "lxc-info -n {{ inventory_hostname }}"
+  failed_when: false
+  delegate_to: "{{ physical_host }}"
+  register: lxc_container_info
+  when: lxc_container_backing_store == "overlayfs"
+
+# Due to https://bugs.launchpad.net/ubuntu/+source/lxc/+bug/1591510
+# the '-B' option is used, instead of the more understandable
+# '--backingstore'.
+# TODO(odyssey4me): Revisit this once a fix has merged
+- name: Create container (overlayfs)
+  command: >
+    lxc-copy --snapshot -B overlayfs
+    --name {{ lxc_container_map.distro }}-{{ lxc_container_map.release }}-{{ lxc_container_map.arch }}
+    --newname {{ inventory_hostname }}
+    -L {{ properties.container_fs_size | default(lxc_container_fs_size) }}
+  delegate_to: "{{ physical_host }}"
+  when:
+    - lxc_container_backing_store == "overlayfs"
+    - lxc_container_info.rc != 0
+  tags:
+    - lxc-container-create
+
+# Note that the first four container_config flags are normally applied through
+# the lxc_container module's 'config' option, but the module doesn't support
+# applying that option after the container has been created. This is a workaround
+# until either that is fixed, or a better alternative is identified.
+# TODO(odyssey4me): revisit this for better options some time
+- name: Execute container commands and add container config (overlayfs)
+  lxc_container:
+    name: "{{ inventory_hostname }}"
+    container_command: "{{ lxc_container_map.prep_commands }}"
+    container_config:
+      - "lxc.start.auto=1"
+      - "lxc.start.delay=15"
+      - "lxc.group=onboot"
+      - "lxc.group=openstack"
+      - "lxc.autodev=1"
+      - "lxc.pts=1024"
+      - "lxc.kmsg=0"
+      - "lxc.hook.autodev=/var/lib/lxc/{{ inventory_hostname }}/autodev"
+      - "lxc.mount.entry=/openstack/backup/{{ inventory_hostname }} var/backup none defaults,bind,rw 0 0"
+  delegate_to: "{{ physical_host }}"
+  when: lxc_container_backing_store == "overlayfs"
+  tags:
+    - lxc-container-config
 
 - name: Container network interfaces
   lxc_container:

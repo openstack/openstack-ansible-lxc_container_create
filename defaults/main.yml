@@ -29,9 +29,16 @@ lxc_container_rootfs_directory: "{{ lxc_container_directory }}/{{ container_name
 lxc_container_fs_size: 5G
 lxc_container_fs_type: ext4
 
-# Default store is lvm, however will fall back to dir if the
-# container_volume_group is not found.
-lxc_container_backing_store: lvm
+# The container backing store can be set to 'overlayfs' to use overlayfs
+# This should only be done for production use with a linux kernel > 3.14
+# which is when overlayfs was merged into the mainline kernel.
+# lxc_container_backing_store: overlayfs
+# Other store options are "dir" and "lvm".
+
+# If the container backing store is LVM, the automatic detection will
+# require the presence of the lxc_container_vg_name volume group. If
+# this is not found then the automatic detection will fail back to
+# using the directory backing.
 lxc_container_vg_name: lxc
 
 lxc_container_default_mtu: "1500"
