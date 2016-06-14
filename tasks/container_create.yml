@@ -82,7 +82,7 @@
     name: "{{ inventory_hostname }}"
     container_command: |
       echo -e '{{ lxc_container_interface }}' | tee {{ lxc_container_interface_target }}
-  with_dict: container_networks|default({})
+  with_dict: "{{ container_networks | default({}) }}"
   delegate_to: "{{ physical_host }}"
   tags:
     - lxc-container-networks
@@ -93,7 +93,7 @@
     container_command: |
       echo -e '{{ lxc_container_default_route_interfaces.route_setup }}' | tee {{ lxc_container_default_route_interfaces.route_file }}
   when: item.value.static_routes is defined
-  with_dict: container_networks|default({})
+  with_dict: "{{ container_networks | default({}) }}"
   delegate_to: "{{ physical_host }}"
   tags:
     - lxc-container-networks
@@ -105,7 +105,7 @@
     owner: "root"
     group: "root"
     mode: "0644"
-  with_dict: container_networks|default({})
+  with_dict: "{{ container_networks | default({}) }}"
   notify:
     - Lxc container restart
   delegate_to: "{{ physical_host }}"
@@ -130,7 +130,7 @@
     dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
     line: "lxc.include = /var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}.ini"
     backup: "true"
-  with_dict: container_networks|default({})
+  with_dict: "{{ container_networks | default({}) }}"
   when: >
     item.value.interface is defined
   notify:
