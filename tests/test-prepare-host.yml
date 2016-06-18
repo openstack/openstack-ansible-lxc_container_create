@@ -39,30 +39,6 @@
           - { src: '/etc/pip.conf', dest: '/etc/pip.conf' }
       when:
         - nodepool.stat.exists | bool
-    - name: Set a fact for file to disable GPG signature checking of apt sources for OpenStack-CI instances
-      set_fact:
-        apt_disable_gpg_checking:
-          - { src: '/etc/apt/apt.conf.d/99unauthenticated', dest: '/etc/apt/apt.conf.d/99unauthenticated' }
-      when:
-        - nodepool.stat.exists | bool
-        - ansible_pkg_mgr == 'apt'
-    - name: Update the files to copy into the container cache for OpenStack-CI instances
-      set_fact:
-        lxc_container_cache_files:
-          "{{ lxc_container_cache_files + apt_disable_gpg_checking }}"
-      when:
-        - nodepool.stat.exists | bool
-        - ansible_pkg_mgr == 'apt'
-    - name: Determine the existing Ubuntu repo configuration
-      shell: 'awk "/^deb .*ubuntu\/? {{ ansible_distribution_release }} main/ {print \$2; exit}" /etc/apt/sources.list'
-      register: ubuntu_repo
-      changed_when: false
-      when: ansible_os_family == 'Debian'
-    - name: Set apt repo facts based on discovered information
-      set_fact:
-        lxc_container_template_main_apt_repo: "{{ ubuntu_repo.stdout }}"
-        lxc_container_template_security_apt_rep: "{{ ubuntu_repo.stdout }}"
-      when: ansible_os_family == 'Debian'
   roles:
     - role: "lxc_hosts"
       lxc_net_address: 10.100.100.1
