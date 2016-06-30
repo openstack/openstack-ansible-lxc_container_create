@@ -49,7 +49,7 @@ lxc_container_interface_target: "/etc/network/interfaces.d/{{ item.value.interfa
 
 lxc_container_map:
   distro: ubuntu
-  arch: amd64
+  arch: "{{ lxc_architecture_mapping.get( hostvars[physical_host]['ansible_architecture'] | lower ) }}"
   release: xenial
   prep_commands: |
     mkdir -p /var/backup

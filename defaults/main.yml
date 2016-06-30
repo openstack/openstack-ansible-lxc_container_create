@@ -15,6 +15,11 @@
 
 lxc_container_config: /etc/lxc/lxc-openstack.conf
 
+# Mappings from Ansible reported architecture to distro release architecture
+lxc_architecture_mapping:
+  x86_64: amd64
+  ppc64le: ppc64el
+
 # lxc container rootfs directory and cache path
 lxc_container_directory: "/var/lib/lxc"
 lxc_container_cache_path: "/var/cache/lxc"
