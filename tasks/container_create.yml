@@ -58,6 +58,7 @@
   lxc_container:
     name: "{{ inventory_hostname }}"
     container_log: "true"
+    container_log_level: "{{ (debug | bool) | ternary('DEBUG', 'INFO') }}"
     config: "{{ lxc_container_config }}"
     template: "{{ lxc_container_template }}"
     state: started
@@ -100,6 +101,8 @@
     --name {{ lxc_container_map.distro }}-{{ lxc_container_map.release }}-{{ lxc_container_map.arch }}
     --newname {{ inventory_hostname }}
     -L {{ properties.container_fs_size | default(lxc_container_fs_size) }}
+    --logfile {{ lxc_container_log_path }}/lxc-{{ inventory_hostname }}.log
+    --logpriority {{ (debug | bool) | ternary('DEBUG', 'INFO') }}
   delegate_to: "{{ physical_host }}"
   when:
     - lxc_container_backing_store == "overlayfs"

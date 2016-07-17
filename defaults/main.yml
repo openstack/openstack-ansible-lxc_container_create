@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+## Verbosity Options
+debug: False
+
 lxc_container_config: /etc/lxc/lxc-openstack.conf
 
 # Mappings from Ansible reported architecture to distro release architecture
@@ -23,6 +26,7 @@ lxc_architecture_mapping:
 # lxc container rootfs directory and cache path
 lxc_container_directory: "/var/lib/lxc"
 lxc_container_cache_path: "/var/cache/lxc"
+lxc_container_log_path: "/var/log/lxc"
 lxc_container_rootfs_directory: "{{ lxc_container_directory }}/{{ container_name }}/rootfs"
 
 # container_fs.* is only used with building on an LVM backend
