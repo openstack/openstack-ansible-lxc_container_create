@@ -13,6 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+- name: Ansible version and LXC backing store check
+  fail:
+    msg: "Using overlayfs is not supported when using Ansible version < 2"
+  when:
+    - lxc_container_backing_store is defined
+    - lxc_container_backing_store == "overlayfs"
+    - ansible_version.major < 2
+
+- name: Kernel version and LXC backing store check
+  debug:
+    msg: "Using overlayfs is not recommended when using Kernel version < 3.18"
+  when:
+    - lxc_container_backing_store is defined
+    - lxc_container_backing_store == "overlayfs"
+    - hostvars[physical_host]['ansible_kernel'] | version_compare('3.18.0-0-generic', '<')
+
 - name: Gather variables for each operating system
   include_vars: "{{ item }}"
   with_first_found:
