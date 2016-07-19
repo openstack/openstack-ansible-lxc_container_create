@@ -68,12 +68,7 @@
     vg_name: "{{ lxc_container_vg_name }}"
     template_options: "{{ lxc_container_download_template_options }}"
     container_command: "{{ lxc_container_map.prep_commands }}"
-    container_config:
-      - "lxc.autodev=1"
-      - "lxc.pts=1024"
-      - "lxc.kmsg=0"
-      - "lxc.hook.autodev=/var/lib/lxc/{{ inventory_hostname }}/autodev"
-      - "lxc.mount.entry=/openstack/backup/{{ inventory_hostname }} var/backup none defaults,bind,rw 0 0"
+    container_config: "{{ lxc_container_default_config_list | union(lxc_container_config_list) }}"
   delegate_to: "{{ physical_host }}"
   when:
     - lxc_container_backing_store != "overlayfs"
@@ -116,16 +111,7 @@
   lxc_container:
     name: "{{ inventory_hostname }}"
     container_command: "{{ lxc_container_map.prep_commands }}"
-    container_config:
-      - "lxc.start.auto=1"
-      - "lxc.start.delay=15"
-      - "lxc.group=onboot"
-      - "lxc.group=openstack"
-      - "lxc.autodev=1"
-      - "lxc.pts=1024"
-      - "lxc.kmsg=0"
-      - "lxc.hook.autodev=/var/lib/lxc/{{ inventory_hostname }}/autodev"
-      - "lxc.mount.entry=/openstack/backup/{{ inventory_hostname }} var/backup none defaults,bind,rw 0 0"
+    container_config: "{{ lxc_container_default_config_list | union(lxc_container_overlayfs_config_list) | union(lxc_container_config_list) }}"
   delegate_to: "{{ physical_host }}"
   when: lxc_container_backing_store == "overlayfs"
   tags:
