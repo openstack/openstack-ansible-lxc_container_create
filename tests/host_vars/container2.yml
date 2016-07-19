@@ -1,0 +1,3 @@
+---
+lxc_container_config_list:
+  - "lxc.aa_profile=unconfined"
