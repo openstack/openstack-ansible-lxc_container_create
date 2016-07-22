@@ -68,8 +68,6 @@
     fs_type: "{{ lxc_container_fs_type }}"
     vg_name: "{{ lxc_container_vg_name }}"
     template_options: "{{ lxc_container_download_template_options }}"
-    container_command: "{{ lxc_container_map.prep_commands }}"
-    container_config: "{{ lxc_container_default_config_list | union(lxc_container_config_list) }}"
   delegate_to: "{{ physical_host }}"
   when:
     - lxc_container_backing_store != "overlayfs"
@@ -105,20 +103,25 @@
   tags:
     - lxc-container-create
 
-# Note that the first four container_config flags are normally applied through
-# the lxc_container module's 'config' option, but the module doesn't support
-# applying that option after the container has been created. This is a workaround
-# until either that is fixed, or a better alternative is identified.
-# TODO(odyssey4me): revisit this for better options some time
-- name: Execute container commands and add container config (overlayfs)
+- name: Write default container config
+  lineinfile:
+    dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
+    line: "{{ item | replace('=', ' = ') | regex_replace('\\s+', ' ') }}"
+    backup: "true"
+  with_items: "{{ lxc_container_default_config_list | union(lxc_container_config_list) }}"
+  delegate_to: "{{ physical_host }}"
+  notify:
+    - Lxc container restart
+  tags:
+    - lxc-container-config
+
+- name: Execute container commands
   lxc_container:
     name: "{{ inventory_hostname }}"
     container_command: "{{ lxc_container_map.prep_commands }}"
-    container_config: "{{ lxc_container_default_config_list | union(lxc_container_overlayfs_config_list) | union(lxc_container_config_list) }}"
   delegate_to: "{{ physical_host }}"
-  when: lxc_container_backing_store == "overlayfs"
   tags:
-    - lxc-container-config
+    - lxc-container-commands
 
 - name: Container network interfaces
   lxc_container:

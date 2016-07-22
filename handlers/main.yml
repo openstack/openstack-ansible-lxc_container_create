@@ -20,6 +20,7 @@
   notify:
     - Start Container
   delegate_to: "{{ physical_host }}"
+  when: lxc_container_allow_restarts | bool
 
 - name: Start Container
   lxc_container:

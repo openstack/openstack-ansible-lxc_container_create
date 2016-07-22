@@ -18,16 +18,15 @@ debug: False
 
 lxc_container_config: /etc/lxc/lxc-openstack.conf
 lxc_container_default_config_list:
+  - "lxc.start.auto=1"
+  - "lxc.start.delay=15"
+  - "lxc.group=onboot"
+  - "lxc.group=openstack"
   - "lxc.autodev=1"
   - "lxc.pts=1024"
   - "lxc.kmsg=0"
   - "lxc.hook.autodev=/var/lib/lxc/{{ inventory_hostname }}/autodev"
   - "lxc.mount.entry=/openstack/backup/{{ inventory_hostname }} var/backup none defaults,bind,rw 0 0"
-lxc_container_overlayfs_config_list:
-  - "lxc.start.auto=1"
-  - "lxc.start.delay=15"
-  - "lxc.group=onboot"
-  - "lxc.group=openstack"
 lxc_container_config_list: []
 
 # Mappings from Ansible reported architecture to distro release architecture
@@ -83,3 +82,6 @@ lxc_container_download_template_options: >
   --force-cache
   --server {{ lxc_image_cache_server }}
   --variant={{ lxc_container_variant }}
+
+# Toggle the restart of containers via the handler.
+lxc_container_allow_restarts: yes
