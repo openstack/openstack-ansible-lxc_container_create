@@ -47,6 +47,30 @@
       register: container3_profile
       failed_when: container3_profile.rc == 0
 
+    - name: Check for the presence of the right bound mount for container1
+      command: grep "lxc.mount.entry = /openstack/container1 opt/test1 none bind 0 0" /var/lib/lxc/container1/config
+      register: container1_bind_mount
+      failed_when: container1_bind_mount.rc != 0
+
+    - name: Check for the lack of presence of a bound mount for container2
+      command: grep "lxc.mount.entry = /openstack/container2 opt/test1 none bind 0 0" /var/lib/lxc/container2/config
+      register: container2_bind_mount
+      failed_when: container2_bind_mount.rc == 0
+
+    - name: Check for the lack of presence of a bound mount for container3
+      command: grep "lxc.mount.entry = /openstack/container3 opt/test1 none bind 0 0" /var/lib/lxc/container3/config
+      register: container1_bind_mount
+      failed_when: container1_bind_mount.rc == 0
+
+- name: Check for the bind mount in container1
+  hosts: container1
+  remote_user: root
+  tasks:
+    - name: Check for the presence of /opt/test1
+      command: ls -1 /opt/test1
+      register: container1_test_dir
+      failed_when: container1_test_dir.rc != 0
+
 - name: Test the containers themselves
   hosts: all_containers
   remote_user: root

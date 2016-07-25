@@ -1,3 +1,7 @@
 ---
 lxc_container_config_list:
   - "lxc.aa_profile=lxc-openstack"
+  - "lxc.mount.entry=/openstack/{{ inventory_hostname }} opt/test1 none bind 0 0"
+
+lxc_container_commands: |
+  [[ ! -d "/opt/test1" ]] && mkdir -p "/opt/test1"

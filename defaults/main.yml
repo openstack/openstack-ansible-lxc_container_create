@@ -28,6 +28,7 @@ lxc_container_default_config_list:
   - "lxc.hook.autodev=/var/lib/lxc/{{ inventory_hostname }}/autodev"
   - "lxc.mount.entry=/openstack/backup/{{ inventory_hostname }} var/backup none defaults,bind,rw 0 0"
 lxc_container_config_list: []
+lxc_container_commands: ""
 
 # Mappings from Ansible reported architecture to distro release architecture
 lxc_architecture_mapping:
