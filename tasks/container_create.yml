@@ -103,6 +103,16 @@
   tags:
     - lxc-container-create
 
+- name: Execute container commands
+  lxc_container:
+    name: "{{ inventory_hostname }}"
+    container_command: |
+      {{ lxc_container_map.prep_commands }}
+      {{ lxc_container_commands }}
+  delegate_to: "{{ physical_host }}"
+  tags:
+    - lxc-container-commands
+
 - name: Write default container config
   lineinfile:
     dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
@@ -114,16 +124,6 @@
     - Lxc container restart
   tags:
     - lxc-container-config
-
-- name: Execute container commands
-  lxc_container:
-    name: "{{ inventory_hostname }}"
-    container_command: |
-      {{ lxc_container_map.prep_commands }}
-      {{ lxc_container_commands }}
-  delegate_to: "{{ physical_host }}"
-  tags:
-    - lxc-container-commands
 
 - name: Container network interfaces
   lxc_container:
