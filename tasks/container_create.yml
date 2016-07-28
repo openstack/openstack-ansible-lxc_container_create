@@ -125,6 +125,33 @@
   tags:
     - lxc-container-config
 
+- name: Ensure bind mount host directories exists
+  file:
+    path: "{{ item['host_directory'] }}"
+    state: "directory"
+  with_items: "{{ lxc_container_bind_mounts }}"
+  delegate_to: "{{ physical_host }}"
+
+- name: Ensure container directories exist
+  lxc_container:
+    name: "{{ inventory_hostname }}"
+    container_command: |
+      [[ ! -d "{{ item['container_directory'] }}" ]] && mkdir -p "{{ item['container_directory'] }}"
+  with_items: "{{ lxc_container_bind_mounts }}"
+  delegate_to: "{{ physical_host }}"
+
+- name: Add bind mount configuration to container
+  lineinfile:
+    dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
+    line: "lxc.mount.entry = {{ item['host_directory'] }} {{ item['container_directory'].lstrip('/') }} none bind 0 0"
+    backup: "true"
+  with_items: "{{ lxc_container_bind_mounts }}"
+  delegate_to: "{{ physical_host }}"
+  notify:
+    - Lxc container restart
+  tags:
+    - lxc-container-config
+
 - name: Container network interfaces
   lxc_container:
     name: "{{ inventory_hostname }}"

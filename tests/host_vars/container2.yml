@@ -1,3 +1,8 @@
 ---
 lxc_container_config_list:
   - "lxc.aa_profile=unconfined"
+
+lxc_container_bind_mounts:
+  - host_directory: "/openstack/{{ inventory_hostname }}/test2"
+    container_directory: "/var/log/test2"
+

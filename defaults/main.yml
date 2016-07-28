@@ -30,6 +30,12 @@ lxc_container_default_config_list:
 lxc_container_config_list: []
 lxc_container_commands: ""
 
+# A list of bind mounts to configure for the container, for example:
+# lxc_container_bind_mounts:
+#   - host_directory: "/openstack/{{ inventory_hostname }}/mydirectory"
+#     container_directory: "/opt/mydirectory"
+lxc_container_bind_mounts: []
+
 # Mappings from Ansible reported architecture to distro release architecture
 lxc_architecture_mapping:
   x86_64: amd64
