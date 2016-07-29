@@ -16,6 +16,9 @@
 ## Verbosity Options
 debug: False
 
+## SSH connection wait time
+lxc_container_ssh_delay: 5
+
 lxc_container_config: /etc/lxc/lxc-openstack.conf
 lxc_container_default_config_list:
   - "lxc.start.auto=1"
