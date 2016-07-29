@@ -80,3 +80,6 @@ lxc_container_interface: |
   iface {{ item.value.interface }} inet manual
   {% endif %}
   ### end generated network for [ {{ item.value.interface }} ] ###
+
+# Toggle the restart of containers via the handler.
+lxc_container_allow_restarts: yes
