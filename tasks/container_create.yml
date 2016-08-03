@@ -252,6 +252,9 @@
     host: "{{ ansible_ssh_host | default(inventory_hostname) }}"
     search_regex: OpenSSH
     delay: "{{ lxc_container_ssh_delay }}"
+  register: ssh_wait_check
+  until: ssh_wait_check | success
+  retries: 3
   tags:
     - lxc-container-networks
 
