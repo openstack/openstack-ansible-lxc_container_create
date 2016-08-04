@@ -53,10 +53,8 @@
     - name: Check for the presence of the right bound mount for container2
       command: grep "lxc.mount.entry = /openstack/container2/test2 var/log/test2 none bind 0 0" /var/lib/lxc/container2/config
 
-    - name: Check for the lack of presence of any bound mount (except the backup bind mount) for container3
-      command: grep "lxc.mount.entry = /openstack/container" /var/lib/lxc/container3/config
-      register: container1_bind_mount
-      failed_when: container1_bind_mount.rc == 0
+    - name: Check for the presence of the default bound mount for container3
+      command: grep "lxc.mount.entry = /openstack/backup/container3" /var/lib/lxc/container3/config
 
 - name: Check for the bind mount in container1
   hosts: container1
