@@ -180,8 +180,6 @@
     group: "root"
     mode: "0644"
   with_dict: "{{ container_networks | default({}) }}"
-  notify:
-    - Lxc container restart
   delegate_to: "{{ physical_host }}"
   tags:
     - lxc-container-networks
@@ -205,10 +203,36 @@
     line: "lxc.include = /var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}.ini"
     backup: "true"
   with_dict: "{{ container_networks | default({}) }}"
-  when: >
-    item.value.interface is defined
-  notify:
-    - Lxc container restart
+  when: item.value.interface is defined
+  delegate_to: "{{ physical_host }}"
+  tags:
+    - lxc-container-networks
+
+- name: Create wiring script
+  copy:
+    src: "lxc-veth-wiring.sh"
+    dest: "/usr/local/bin/lxc-veth-wiring"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+  delegate_to: "{{ physical_host }}"
+  tags:
+    - lxc-container-networks
+
+- name: Run container veth wiring script
+  shell: >
+    /usr/local/bin/lxc-veth-wiring
+    "{{ inventory_hostname }}"
+    "{{ inventory_hostname[-8:].replace('-', '').replace('_', '') }}_{{ item.value.interface }}"
+    "{{ item.value.interface }}"
+    "{{ item.value.bridge }}"
+  register: wiring_script
+  with_dict: "{{ container_networks | default({}) }}"
+  when:
+    - item.value.interface is defined
+    - item.value.type is not defined or item.value.type == 'veth'
+  failed_when: wiring_script.rc not in [3, 0]
+  changed_when: wiring_script.rc == 3
   delegate_to: "{{ physical_host }}"
   tags:
     - lxc-container-networks
