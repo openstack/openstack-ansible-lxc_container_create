@@ -13,17 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Due to https://github.com/ansible/ansible-modules-extras/issues/2691
+# this uses the LXC CLI tools to ensure that we get logging.
+# TODO(odyssey4me): revisit this once the bug is fixed and released
 - name: Lxc container restart
-  lxc_container:
-    name: "{{ inventory_hostname }}"
-    state: "stopped"
+  command: >
+    lxc-stop --name {{ inventory_hostname }}
+    --logfile {{ lxc_container_log_path }}/lxc-{{ inventory_hostname }}.log
+    --logpriority {{ (debug | bool) | ternary('DEBUG', 'INFO') }}
   notify:
     - Start Container
   delegate_to: "{{ physical_host }}"
   when: lxc_container_allow_restarts | bool
 
+# Due to https://github.com/ansible/ansible-modules-extras/issues/2691
+# this uses the LXC CLI tools to ensure that we get logging.
+# TODO(odyssey4me): revisit this once the bug is fixed and released
 - name: Start Container
-  lxc_container:
-    name: "{{ inventory_hostname }}"
-    state: "started"
+  command: >
+    lxc-start --daemon --name {{ inventory_hostname }}
+    --logfile {{ lxc_container_log_path }}/lxc-{{ inventory_hostname }}.log
+    --logpriority {{ (debug | bool) | ternary('DEBUG', 'INFO') }}
   delegate_to: "{{ physical_host }}"

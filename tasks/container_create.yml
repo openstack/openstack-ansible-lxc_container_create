@@ -57,7 +57,7 @@
 - name: Create container
   lxc_container:
     name: "{{ inventory_hostname }}"
-    container_log: "true"
+    container_log: true
     container_log_level: "{{ (debug | bool) | ternary('DEBUG', 'INFO') }}"
     config: "{{ lxc_container_config }}"
     template: "{{ lxc_container_template }}"
@@ -102,6 +102,23 @@
     - lxc_container_info.rc != 0
   tags:
     - lxc-container-create
+
+- name: Check container state
+  command: "lxc-info -n {{ inventory_hostname }} --state"
+  failed_when: false
+  delegate_to: "{{ physical_host }}"
+  register: _lxc_container_state
+
+# Due to https://github.com/ansible/ansible-modules-extras/issues/2691
+# this uses the LXC CLI tools to ensure that we get logging.
+# TODO(odyssey4me): revisit this once the bug is fixed and released
+- name: Start the container if it is not already running
+  command: >
+    lxc-start --daemon --name {{ inventory_hostname }}
+    --logfile {{ lxc_container_log_path }}/lxc-{{ inventory_hostname }}.log
+    --logpriority {{ (debug | bool) | ternary('DEBUG', 'INFO') }}
+  delegate_to: "{{ physical_host }}"
+  when: _lxc_container_state.stdout.find('STOPPED') != -1
 
 - name: Execute container commands
   lxc_container:
