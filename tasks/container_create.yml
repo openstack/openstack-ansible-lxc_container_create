@@ -116,6 +116,7 @@
 - name: Check container state
   command: "lxc-info -n {{ inventory_hostname }} --state"
   failed_when: false
+  changed_when: false
   delegate_to: "{{ physical_host }}"
   register: _lxc_container_state
 
@@ -159,14 +160,6 @@
   with_items: "{{ lxc_container_default_bind_mounts | union(lxc_container_bind_mounts) }}"
   delegate_to: "{{ physical_host }}"
 
-- name: Ensure container directories exist
-  lxc_container:
-    name: "{{ inventory_hostname }}"
-    container_command: |
-      [[ ! -d "{{ item['container_directory'] }}" ]] && mkdir -p "{{ item['container_directory'] }}"
-  with_items: "{{ lxc_container_default_bind_mounts | union(lxc_container_bind_mounts) }}"
-  delegate_to: "{{ physical_host }}"
-
 - name: Add bind mount configuration to container
   lineinfile:
     dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
@@ -179,27 +172,6 @@
   tags:
     - lxc-container-config
 
-- name: Container network interfaces
-  lxc_container:
-    name: "{{ inventory_hostname }}"
-    container_command: |
-      echo -e '{{ lxc_container_interface }}' | tee {{ lxc_container_interface_target }}
-  with_dict: "{{ container_networks | default({}) }}"
-  delegate_to: "{{ physical_host }}"
-  tags:
-    - lxc-container-networks
-
-- name: Container network route interfaces
-  lxc_container:
-    name: "{{ inventory_hostname }}"
-    container_command: |
-      echo -e '{{ lxc_container_default_route_interfaces.route_setup }}' | tee {{ lxc_container_default_route_interfaces.route_file }}
-  when: item.value.static_routes is defined
-  with_dict: "{{ container_networks | default({}) }}"
-  delegate_to: "{{ physical_host }}"
-  tags:
-    - lxc-container-networks
-
 - name: LXC host config for container networks
   template:
     src: "container-interface.ini.j2"
@@ -211,6 +183,76 @@
   delegate_to: "{{ physical_host }}"
   tags:
     - lxc-container-networks
+
+- name: Create start
+  lxc_container:
+    name: "{{ inventory_hostname }}"
+    state: started
+  delegate_to: "{{ physical_host }}"
+  tags:
+    - lxc-container-create
+
+- name: Get LXC container PID
+  command: >
+    lxc-info -pHn {{ inventory_hostname }}
+  register: container_pid
+  changed_when: false
+  delegate_to: "{{ physical_host }}"
+  tags:
+    - lxc-container-setup
+
+- name: Drop container network file (interfaces)
+  template:
+    src: "{{ lxc_container_interface }}"
+    dest: "/proc/{{ container_pid.stdout }}/root{{ lxc_container_interface_target }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  with_dict: "{{ container_networks | default({}) }}"
+  delegate_to: "{{ physical_host }}"
+  tags:
+    - lxc-container-setup
+
+- name: Drop container network file (routes)
+  template:
+    src: "{{ lxc_container_route_interface }}"
+    dest: "/proc/{{ container_pid.stdout }}/root{{ lxc_container_default_route_interfaces }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  when:
+    - lxc_container_route_interface | bool
+    - lxc_container_default_route_interfaces | bool
+    - item.value.static_routes is defined
+  with_dict: "{{ container_networks | default({}) }}"
+  delegate_to: "{{ physical_host }}"
+  tags:
+    - lxc-container-setup
+
+- name: Drop container setup script
+  template:
+    src: "container-setup.sh.j2"
+    dest: "/proc/{{ container_pid.stdout }}/root/opt/container-setup.sh"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+  with_dict: "{{ container_networks | default({}) }}"
+  delegate_to: "{{ physical_host }}"
+  tags:
+    - lxc-container-setup
+
+- name: Run container setup script
+  command: |
+    lxc-attach --name "{{ inventory_hostname }}" \
+               --logfile {{ lxc_container_log_path }}/lxc-{{ inventory_hostname }}.log \
+               --logpriority {{ (debug | bool) | ternary('DEBUG', 'INFO') }} \
+               -- /opt/container-setup.sh
+  register: container_setup
+  changed_when: false
+  failed_when: container_setup.rc != 0
+  delegate_to: "{{ physical_host }}"
+  tags:
+    - lxc-container-setup
 
 # NOTE(major): the lxc.network.veth.pair line must appear *immediately* after
 # the lxc.network.name congfiguration line or it will be ignored.  That's why

@@ -16,30 +16,9 @@
 # Note this is a used in an iterable and requires the <item.value.interface> variable
 #   The container interface variable is a a default object that assume the
 #   Ansible iterator type is `with_dict`.
-lxc_container_interface: |
-  ### start generated network for [ {{ item.value.interface }} ] ###
-  DEVICE={{ item.value.interface }}
-  BOOTPROTO=none
-  ONBOOT=yes
-  NM_CONTROLLED=no
-  TYPE=Ethernet
-  {% if item.value.address is defined %}
-  IPADDR={{ item.value.address }}
-  NETMASK={{ item.value.netmask }}
-  {% if item.value.gateway is defined %}
-  GATEWAY={{ item.value.gateway }}
-  {% endif %}
-  {% endif %}
-  MTU={{ item.value.mtu|default(lxc_container_default_mtu) }}
-  DELAY=0
-  ### end generated network for [ {{ item.value.interface }} ] ###
-
-lxc_container_default_route_interfaces:
-  route_file: "/etc/sysconfig/network-scripts/route-{{ item.value.interface }}"
-  route_setup: |
-    {% for route in item.value.static_routes %}
-        {{ route['cidr'] }} via {{ route['gateway'] }} dev {{ item.value.interface }}
-    {% endfor %}
+lxc_container_interface: rhel-interface.j2
+lxc_container_route_interface: rhel-routes.j2
+lxc_container_default_route_interfaces: "/etc/sysconfig/network-scripts/route-{{ item.value.interface }}"
 
 # Note this is a used in an iterable and requires the <item.value.interface> variable
 lxc_container_interface_target: "/etc/sysconfig/network-scripts/ifcfg-{{ item.value.interface }}"

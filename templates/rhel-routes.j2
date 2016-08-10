@@ -1,0 +1,3 @@
+{% for route in item.value.static_routes %}
+    {{ route['cidr'] }} via {{ route['gateway'] }} dev {{ item.value.interface }}
+{% endfor %}
