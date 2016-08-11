@@ -107,7 +107,6 @@
   lxc_container:
     name: "{{ inventory_hostname }}"
     container_command: |
-      {{ lxc_container_map.prep_commands }}
       {{ lxc_container_commands }}
   delegate_to: "{{ physical_host }}"
   tags:

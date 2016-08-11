@@ -28,17 +28,6 @@ lxc_container_interface: |
   {% endif %}
   ### end generated network for [ {{ item.value.interface }} ] ###
 
-# Default interface file
-lxc_container_default_interfaces: |
-  # The loopback network interface
-  auto lo
-  iface lo inet loopback
-  # LXC interface, this is ALWAYS assumed to be DHCP.
-  auto eth0
-  iface eth0 inet dhcp
-  # Load any additional configs
-  source /etc/network/interfaces.d/*.cfg
-
 # Notice this is already resolved in the debian interface file
 lxc_container_default_route_interfaces:
   route_file: "/dev/null"
@@ -51,15 +40,3 @@ lxc_container_map:
   distro: ubuntu
   arch: "{{ lxc_architecture_mapping.get( hostvars[physical_host]['ansible_architecture'] | lower ) }}"
   release: xenial
-  prep_commands: |
-    mkdir -p /var/backup
-    if [ -f  "/usr/lib/systemd/system/poweroff.target" ];then
-      ln -sf /usr/lib/systemd/system/poweroff.target /etc/systemd/system/sigpwr.target || true
-    fi
-    ln -s /dev/null /etc/systemd/system/systemd-udevd.service || true
-    ln -s /dev/null /etc/systemd/system/systemd-udevd-control.socket || true
-    ln -s /dev/null /etc/systemd/system/systemd-udevd-kernel.socket || true
-    ln -s /dev/null /etc/systemd/system/proc-sys-fs-binfmt_misc.automount || true
-    echo -e '{{ lxc_container_default_interfaces }}' | tee /etc/network/interfaces
-    mkdir -p /etc/network/interfaces.d
-    chage -I -1 -d -1 -m 0 -M 99999 -E -1 root
