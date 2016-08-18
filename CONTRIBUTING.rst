@@ -1,7 +1,5 @@
 OpenStack LXC container create
 ##############################
-:tags: openstack, lxc, container, cloud, ansible
-:category: \*nix
 
 contributor guidelines
 ^^^^^^^^^^^^^^^^^^^^^^
