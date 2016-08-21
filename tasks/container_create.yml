@@ -69,37 +69,41 @@
     vg_name: "{{ lxc_container_vg_name }}"
     template_options: "{{ lxc_container_download_template_options }}"
   delegate_to: "{{ physical_host }}"
-  when:
-    - lxc_container_backing_store != "overlayfs"
+  when: >
+    lxc_container_backing_store != "overlayfs" or
+    (lxc_container_backing_store == 'lvm' and not lxc_container_backing_method == 'copy-on-write')
   tags:
     - lxc-container-create
 
 # Due to https://github.com/ansible/ansible-modules-extras/issues/2577 the
 # next two tasks do not use the lxc_container module.
 # TODO(odyssey4me): Revisit this once a fix has merged
-- name: Check if container exists (overlayfs)
+- name: Check if container exists (copy-on-write backing store)
   command: "lxc-info -n {{ inventory_hostname }}"
   failed_when: false
   delegate_to: "{{ physical_host }}"
   register: lxc_container_info
-  when: lxc_container_backing_store == "overlayfs"
+  when: >
+    lxc_container_backing_store == "overlayfs" or
+    (lxc_container_backing_store == 'lvm' and lxc_container_backing_method == 'copy-on-write')
 
 # Due to https://bugs.launchpad.net/ubuntu/+source/lxc/+bug/1591510
 # the '-B' option is used, instead of the more understandable
 # '--backingstore'.
 # TODO(odyssey4me): Revisit this once a fix has merged
-- name: Create container (overlayfs)
+- name: Create container (copy-on-write backing store)
   command: >
-    lxc-copy --snapshot -B overlayfs
+    lxc-copy --snapshot -B {{ lxc_container_backing_store }}
     --name {{ lxc_container_map.distro }}-{{ lxc_container_map.release }}-{{ lxc_container_map.arch }}
     --newname {{ inventory_hostname }}
     -L {{ properties.container_fs_size | default(lxc_container_fs_size) }}
     --logfile {{ lxc_container_log_path }}/lxc-{{ inventory_hostname }}.log
     --logpriority {{ (debug | bool) | ternary('DEBUG', 'INFO') }}
   delegate_to: "{{ physical_host }}"
-  when:
-    - lxc_container_backing_store == "overlayfs"
-    - lxc_container_info.rc != 0
+  when: >
+    (lxc_container_backing_store == "overlayfs" or
+    (lxc_container_backing_store == 'lvm' and lxc_container_backing_method == 'copy-on-write')) and
+    lxc_container_info.rc != 0
   tags:
     - lxc-container-create
 
