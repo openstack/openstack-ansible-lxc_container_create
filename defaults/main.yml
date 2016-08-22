@@ -42,6 +42,10 @@ lxc_container_default_bind_mounts:
   - host_directory: "/openstack/backup/{{ inventory_hostname }}"
     container_directory: "/var/backup"
 
+# When using a base container to snapshot from for the overlayfs or LVM
+# copy-on-write backing stored, the base container can be set.
+lxc_container_base_name: "{{ lxc_container_map.distro }}-{{ lxc_container_map.release }}-{{ lxc_container_map.arch }}"
+
 # Mappings from Ansible reported architecture to distro release architecture
 lxc_architecture_mapping:
   x86_64: amd64

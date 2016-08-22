@@ -94,7 +94,7 @@
 - name: Create container (copy-on-write backing store)
   command: >
     lxc-copy --snapshot -B {{ lxc_container_backing_store }}
-    --name {{ lxc_container_map.distro }}-{{ lxc_container_map.release }}-{{ lxc_container_map.arch }}
+    --name {{ lxc_container_base_name }}
     --newname {{ inventory_hostname }}
     -L {{ properties.container_fs_size | default(lxc_container_fs_size) }}
     --logfile {{ lxc_container_log_path }}/lxc-{{ inventory_hostname }}.log
