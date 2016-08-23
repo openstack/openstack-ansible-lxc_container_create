@@ -93,7 +93,7 @@
     - Lxc container restart
   delegate_to: "{{ physical_host }}"
   tags:
-    - lxc-container-cconfig
+    - lxc-container-config
 
 - name: Load container service mounts and profile
   lxc_container:
