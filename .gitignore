@@ -29,6 +29,7 @@ doc/build/
 *.log
 *.sql
 *.sqlite
+logs/
 
 # OS generated files #
 ######################

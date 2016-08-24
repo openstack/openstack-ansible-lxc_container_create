@@ -80,8 +80,6 @@
       assert:
         that:
           - "'/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games' in environment_content"
-          - "'http_proxy=http://someproxy.example.com' in environment_content"
-          - "'https_proxy=https://someproxy.example.com' in environment_content"
     - name: Test connectivity to external address
       shell: ping -c 3 8.8.8.8
       register: ping_external_address

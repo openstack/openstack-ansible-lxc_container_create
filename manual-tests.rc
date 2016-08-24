@@ -9,7 +9,7 @@ export ANSIBLE_ACTION_PLUGINS=${HOME}/.ansible/plugins/action
 export ANSIBLE_CALLBACK_PLUGINS=${HOME}/.ansible/plugins/callback
 export ANSIBLE_FILTER_PLUGINS=${HOME}/.ansible/plugins/filter
 export ANSIBLE_LOOKUP_PLUGINS=${HOME}/.ansible/plugins/lookup
-
+export ANSIBLE_TRANSPORT=ssh
 # This is required as the default is the current path or a path specified
 # in ansible.cfg
 export ANSIBLE_LIBRARY=${HOME}/.ansible/plugins/library
