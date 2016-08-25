@@ -24,6 +24,9 @@
   notify:
     - Start Container
   delegate_to: "{{ physical_host }}"
+  register: container_stop
+  until: container_stop | success
+  retries: 3
   when: lxc_container_allow_restarts | bool
 
 # Due to https://github.com/ansible/ansible-modules-extras/issues/2691
@@ -35,3 +38,6 @@
     --logfile {{ lxc_container_log_path }}/lxc-{{ inventory_hostname }}.log
     --logpriority {{ (debug | bool) | ternary('DEBUG', 'INFO') }}
   delegate_to: "{{ physical_host }}"
+  register: container_start
+  until: container_start | success
+  retries: 3
