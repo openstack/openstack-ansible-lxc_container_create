@@ -95,15 +95,51 @@
   tags:
     - lxc-container-config
 
+# NOTE(mhayden): The bind mount for Galera logs was broken through release
+# 13.3.1. This task removes the incorrect bind mount from the LXC config file
+# and allows the deployer to restart at a more convenient time. See
+# https://bugs.launchpad.net/openstack-ansible/+bug/1609862 for details.
+- name: Remove incorrect bind mount from galera container configuration (bug 1609862)
+  lineinfile:
+    dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
+    regexp: "^lxc.mount.entry\\s*=\\s*\\/openstack\\/log\\/[\\w_-]*\\svar\\/log\\/galera"
+    state: absent
+    backup: True
+  register: bug_1609862_fix
+  when:
+    - "'_galera_' in inventory_hostname"
+  delegate_to: "{{ physical_host }}"
+  tags:
+    - lxc-container-service-config
+
+# NOTE(mhayden): This task adds in the correct bind mount for Galera logs, but
+# it avoids a container restart. Note that the spaces between the param and
+# value are *critical* here. Even though the next task has no spaces between
+# the param and value, the lxc_container module will add spaces between them
+# when it writes the actual LXC container configuration file. If the spaces are
+# missing in this task, the following task will add a new line and restart
+# the Galera containers, which can cause downtime.
+- name: Add correct bind mount to galera container configuration (bug 1609862)
+  lineinfile:
+    dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
+    line: "lxc.mount.entry = /openstack/log/{{ inventory_hostname }} var/log/{{ properties.log_directory | default(properties.service_name) }} none defaults,bind,rw 0 0"
+    state: present
+    backup: True
+  when:
+    - bug_1609862_fix | changed
+  delegate_to: "{{ physical_host }}"
+  tags:
+    - lxc-container-service-config
+
 - name: Load container service mounts and profile
   lxc_container:
     name: "{{ inventory_hostname }}"
     container_command: |
       mkdir -p /var/backup
-      mkdir -p /var/log/{{ properties.service_name }}
+      mkdir -p /var/log/{{ properties.log_directory | default(properties.service_name) }}
     container_config:
       - "lxc.mount.entry=/openstack/backup/{{ inventory_hostname }} var/backup none defaults,bind,rw 0 0"
-      - "lxc.mount.entry=/openstack/log/{{ inventory_hostname }} var/log/{{ properties.service_name }} none defaults,bind,rw 0 0"
+      - "lxc.mount.entry=/openstack/log/{{ inventory_hostname }} var/log/{{ properties.log_directory | default(properties.service_name) }} none defaults,bind,rw 0 0"
   when: properties.service_name is defined
   delegate_to: "{{ physical_host }}"
   tags:
