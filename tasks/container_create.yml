@@ -71,7 +71,9 @@
   delegate_to: "{{ physical_host }}"
   when: >
     lxc_container_backing_store != "overlayfs" or
-    (lxc_container_backing_store == 'lvm' and not lxc_container_backing_method == 'copy-on-write')
+    (lxc_container_backing_store == 'lvm' and not
+    (lxc_container_backing_method is defined
+    and lxc_container_backing_method == 'copy-on-write'))
   tags:
     - lxc-container-create
 
@@ -85,7 +87,9 @@
   register: lxc_container_info
   when: >
     lxc_container_backing_store == "overlayfs" or
-    (lxc_container_backing_store == 'lvm' and lxc_container_backing_method == 'copy-on-write')
+    (lxc_container_backing_store == 'lvm' and
+    lxc_container_backing_method is defined and
+    lxc_container_backing_method == 'copy-on-write')
 
 # Due to https://bugs.launchpad.net/ubuntu/+source/lxc/+bug/1591510
 # the '-B' option is used, instead of the more understandable
@@ -102,7 +106,9 @@
   delegate_to: "{{ physical_host }}"
   when: >
     (lxc_container_backing_store == "overlayfs" or
-    (lxc_container_backing_store == 'lvm' and lxc_container_backing_method == 'copy-on-write')) and
+    (lxc_container_backing_store == 'lvm' and
+    lxc_container_backing_method is defined and
+    lxc_container_backing_method == 'copy-on-write')) and
     lxc_container_info.rc != 0
   tags:
     - lxc-container-create
