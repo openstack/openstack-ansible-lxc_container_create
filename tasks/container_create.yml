@@ -235,6 +235,19 @@
 # Flush the handlers to ensure the container and networking is online.
 - meta: flush_handlers
 
+- name: Wait for ssh to be available
+  local_action:
+    module: wait_for
+    port: "{{ ansible_ssh_port | default('22') }}"
+    host: "{{ ansible_ssh_host | default(inventory_hostname) }}"
+    search_regex: OpenSSH
+    delay: "{{ lxc_container_ssh_delay }}"
+  register: ssh_wait_check
+  until: ssh_wait_check | success
+  retries: 3
+  tags:
+    - lxc-container-networks
+
 # Resets the container user's password using lxc_container because Python2.7
 #  may not be installed at this point.
 - name: Force container user password set

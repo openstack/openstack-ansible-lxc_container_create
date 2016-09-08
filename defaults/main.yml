@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# SSH connection wait time
+lxc_container_ssh_delay: 5
+
 lxc_container_config: /etc/lxc/lxc-openstack.conf
 
 # Default container template to build from
