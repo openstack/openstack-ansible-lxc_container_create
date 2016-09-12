@@ -8,7 +8,7 @@ lxc.network.name = {{ item.value.interface }}
 # Name the veth after the container
 # NOTE(major): The lxc.network.veth.pair line must appear right after
 # lxc.network.name or it will be ignored.
-lxc.network.veth.pair = {{ inventory_hostname[-8:].replace('-', '').replace('_', '') }}_{{ item.value.interface }}
+lxc.network.veth.pair = {{ lxc_container_network_veth_pair[-15:] }}
 {% endif %}
 # Host link to attach to, this should be a bridge if lxc.network.type = veth
 lxc.network.link = {{ item.value.bridge }}
