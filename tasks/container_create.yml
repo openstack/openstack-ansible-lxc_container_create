@@ -251,7 +251,7 @@
   shell: >
     /usr/local/bin/lxc-veth-wiring
     "{{ inventory_hostname }}"
-    "{{ inventory_hostname[-8:].replace('-', '').replace('_', '') }}_{{ item.value.interface }}"
+    "{{ lxc_container_network_veth_pair[-15:] }}"
     "{{ item.value.interface }}"
     "{{ item.value.bridge }}"
   register: wiring_script
