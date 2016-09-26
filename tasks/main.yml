@@ -41,7 +41,6 @@
     - always
 
 - include: container_create.yml
-  static: no
   when:
     - physical_host is defined
     - inventory_hostname is defined
