@@ -104,3 +104,7 @@ lxc_container_download_template_options: >
 lxc_container_allow_restarts: yes
 
 lxc_container_network_veth_pair: "{{ inventory_hostname[-8:].replace('-', '').replace('_', '') }}_{{ item.value.interface }}"
+
+# Enable fixed mac address generation for an lxc container
+lxc_container_fixed_mac: false
+

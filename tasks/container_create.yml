@@ -172,6 +172,72 @@
   tags:
     - lxc-container-config
 
+# NOTE(cloudnull): Should a container already be up and running with a defined container interface
+#                  the shell command will use the MAC address already set within the container as
+#                  it's value. This allows the tasks to remain idempotent while ensuring that a
+#                  container restart isn't required to set a static mac.
+- name: Set define static mac address from an existing interface
+  shell: |
+    if lxc-attach -n {{ inventory_hostname }} -- cat /sys/class/net/{{ item.value.interface }}/address; then
+      lxc-attach -n {{ inventory_hostname }} -- cat /sys/class/net/{{ item.value.interface }}/address > /var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}.hwaddr
+    fi
+  args:
+    executable: /bin/bash
+    creates: "/var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}.hwaddr"
+  with_dict: "{{ container_networks | default({}) }}"
+  delegate_to: "{{ physical_host }}"
+  failed_when: false
+  when:
+    - lxc_container_fixed_mac | bool
+  tags:
+    - lxc-container-networks
+
+# NOTE(cloudnull): This task is being done to allow a container to have a static mac address.
+#                  before this task a container had a dynamic mac address which would
+#                  change when a container was restarted. This restart process causes terrible
+#                  issues in several network intensive systems (RabbitMQ, Neutron, etc). To
+#                  resolve the rotating mac address issue this task is setting the mac in a hwaddr
+#                  file and a lookup is being used in the container-interface.ini template to render
+#                  the static hardware address as expected.
+- name: Set unique interface mac address
+  shell: |
+      hexchars="0123456789abcdef"
+      echo "00:16:3e$(
+        for i in {1..6}; do
+          echo -n ${hexchars:$(( $RANDOM % 16 )):1}
+        done | sed -e 's/\(..\)/:\1/g'
+      )" > /var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}.hwaddr
+  args:
+    executable: /bin/bash
+    creates: "/var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}.hwaddr"
+  with_dict: "{{ container_networks | default({}) }}"
+  delegate_to: "{{ physical_host }}"
+  when:
+    - lxc_container_fixed_mac | bool
+  tags:
+    - lxc-container-networks
+
+- name: Gather hardware addresses to be used as facts
+  command: cat /var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}.hwaddr
+  changed_when: false
+  register: macs
+  with_dict: "{{ container_networks | default({}) }}"
+  delegate_to: "{{ physical_host }}"
+  when:
+    - lxc_container_fixed_mac | bool
+  tags:
+    - lxc-container-networks
+
+# NOTE(cloudnull): To dynamically set the the mac address "facts" Ansible line format is being used
+- name: Set fixed hardware address fact
+  set_fact: "{{item.item.value.interface }}_mac_address={{ item.stdout }}"
+  with_items:
+    - "{{ macs.results }}"
+  when:
+    - lxc_container_fixed_mac | bool
+  tags:
+    - lxc-container-networks
+
 - name: LXC host config for container networks
   template:
     src: "container-interface.ini.j2"
