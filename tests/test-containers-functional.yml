@@ -83,7 +83,7 @@
     - name: Test connectivity to external address
       shell: ping -c 3 8.8.8.8
       register: ping_external_address
-      ignore_errors: true
+      failed_when: false
     - name: Verify connectivity to external address
       assert:
         that:
