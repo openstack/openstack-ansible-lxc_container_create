@@ -16,8 +16,14 @@
 ## Verbosity Options
 debug: False
 
-## SSH connection wait time
-lxc_container_ssh_delay: 5
+## Parameters provided to the wait_for_connection module after a container
+## reboot is triggered by the role
+lxc_container_wait_params:
+  # Wait 3 seconds before attempting the first connection
+  delay: 3
+  # Wait 60 seconds for the container to respond
+  timeout: 60
+
 
 lxc_container_config: /etc/lxc/lxc-openstack.conf
 lxc_container_default_config_list:

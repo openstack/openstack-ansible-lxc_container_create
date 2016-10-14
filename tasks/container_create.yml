@@ -404,16 +404,12 @@
 # Flush the handlers to ensure the container and networking is online.
 - meta: flush_handlers
 
-- name: Wait for ssh to be available
-  wait_for:
-    port: "{{ ansible_port | default('22') }}"
-    host: "{{ ansible_host | default(inventory_hostname) }}"
-    search_regex: OpenSSH
-    delay: "{{ lxc_container_ssh_delay }}"
-  register: ssh_wait_check
-  until: ssh_wait_check | success
-  retries: 3
-  delegate_to: "{{ physical_host }}"
+- name: Wait for container connectivity
+  wait_for_connection:
+    connect_timeout: "{{ lxc_container_wait_params.connect_timeout | default(omit) }}"
+    delay: "{{ lxc_container_wait_params.delay | default(omit) }}"
+    sleep: "{{ lxc_container_wait_params.sleep | default(omit) }}"
+    timeout: "{{ lxc_container_wait_params.timeout | default(omit) }}"
   tags:
     - lxc_container_create-networks
 
