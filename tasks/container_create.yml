@@ -302,7 +302,6 @@
     owner: "root"
     group: "root"
     mode: "0755"
-  with_dict: "{{ container_networks | default({}) }}"
   delegate_to: "{{ physical_host }}"
   tags:
     - lxc-container-setup
