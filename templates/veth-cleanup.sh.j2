@@ -6,8 +6,10 @@ export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 ip link del {{ inventory_hostname[-8:].replace('-', '').replace('_', '') }}_eth0 || true
 
 # Veth cleanup for items in the container_networks data structure
+{% if container_networks is defined %}
 {% for key, value in container_networks.items() %}
 {% if value.type is not defined or value.type == 'veth' %}
 ip link del {{ inventory_hostname[-8:].replace('-', '').replace('_', '') }}_{{ value.interface }} || true
 {% endif %}
 {% endfor %}
+{% endif %}
