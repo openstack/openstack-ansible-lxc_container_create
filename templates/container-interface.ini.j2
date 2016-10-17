@@ -13,7 +13,11 @@ lxc.network.veth.pair = {{ inventory_hostname[-8:].replace('-', '').replace('_',
 # Host link to attach to, this should be a bridge if lxc.network.type = veth
 lxc.network.link = {{ item.value.bridge }}
 # Hardware Address
+{% if lxc_container_fixed_mac | bool %}
+lxc.network.hwaddr = {{ hostvars[inventory_hostname][item.value.interface + '_mac_address'] }}
+{% else %}
 lxc.network.hwaddr = 00:16:3e:xx:xx:xx
+{% endif %}
 # enable the device on boot
 lxc.network.flags = up
 # Set the container network MTU

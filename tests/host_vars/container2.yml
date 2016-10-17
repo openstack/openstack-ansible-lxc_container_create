@@ -1,0 +1,5 @@
+---
+
+# TEST FOR FIXED MAC ADDRESS
+lxc_container_fixed_mac: true
+
