@@ -200,8 +200,9 @@
 #                  file and a lookup is being used in the container-interface.ini template to render
 #                  the static hardware address as expected.
 - name: Set unique interface mac address
+  environment:
+    hexchars: "0123456789abcdef"
   shell: |
-      hexchars="0123456789abcdef"
       echo "00:16:3e$(
         for i in {1..6}; do
           echo -n ${hexchars:$(( $RANDOM % 16 )):1}
@@ -355,7 +356,7 @@
     - lxc-container-networks
 
 - name: Run container veth wiring script
-  shell: >
+  command: >
     /usr/local/bin/lxc-veth-wiring
     "{{ inventory_hostname }}"
     "{{ lxc_container_network_veth_pair[-15:] }}"
@@ -464,6 +465,7 @@
 
 - name: Setup hostname
   command: hostname -F /etc/hostname
+  changed_when: false
   remote_user: root
   tags:
     - lxc-container-hostname
