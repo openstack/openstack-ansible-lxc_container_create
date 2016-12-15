@@ -1,20 +1,5 @@
 Vagrant.configure(2) do |config|
 
-  config.vm.define "ubuntu1404" do |trusty|
-    trusty.vm.box = "ubuntu/trusty64"
-
-    trusty.vm.provider "virtualbox" do |v|
-      v.memory = 2048
-      v.cpus = 2
-    end
-
-    trusty.vm.provision "shell", inline: <<-SHELL
-      sudo su -
-      cd /vagrant
-      ./run_tests.sh
-    SHELL
-  end
-
   config.vm.define "ubuntu1604" do |xenial|
     xenial.vm.box = "ubuntu/xenial64"
     xenial.vm.provider "virtualbox" do |v|
