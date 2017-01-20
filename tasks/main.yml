@@ -46,4 +46,4 @@
     - inventory_hostname is defined
     - physical_host != inventory_hostname
   tags:
-    - lxc-container
+    - lxc_container_create
