@@ -21,14 +21,14 @@
   delegate_to: "{{ physical_host }}"
   when: lxc_container_backing_store is not defined or lxc_container_backing_store == "lvm"
   tags:
-    - lxc-container-vg-detect
+    - lxc_container_create-vg-detect
 
 - name: Set container backend to "dir" or "lvm" based on whether the lxc VG was found
   set_fact:
      lxc_container_backing_store: "{{ (vg_result.rc != 0) | ternary('dir', 'lvm') }}"
   when: vg_result.rc is defined
   tags:
-    - lxc-container-vg-detect
+    - lxc_container_create-vg-detect
 
 - name: Container service directories
   file:
@@ -41,7 +41,7 @@
     - "{{ lxc_container_directory }}/{{ inventory_hostname }}"
   delegate_to: "{{ physical_host }}"
   tags:
-    - lxc-container-directories
+    - lxc_container_create-directories
 
 - name: LXC autodev setup
   template:
@@ -52,7 +52,7 @@
     mode: "0755"
   delegate_to: "{{ physical_host }}"
   tags:
-    - lxc-container-autodev
+    - lxc_container_create-autodev
 
 - name: Create container
   lxc_container:
@@ -75,7 +75,7 @@
     (lxc_container_backing_method is defined
     and lxc_container_backing_method == 'copy-on-write'))
   tags:
-    - lxc-container-create
+    - lxc_container_create-create
 
 # Due to https://github.com/ansible/ansible-modules-extras/issues/2577 the
 # next two tasks do not use the lxc_container module.
@@ -111,7 +111,7 @@
     lxc_container_backing_method == 'copy-on-write')) and
     lxc_container_info.rc != 0
   tags:
-    - lxc-container-create
+    - lxc_container_create-create
 
 - name: Check container state
   command: "lxc-info -n {{ inventory_hostname }} --state"
@@ -138,7 +138,7 @@
       {{ lxc_container_commands }}
   delegate_to: "{{ physical_host }}"
   tags:
-    - lxc-container-commands
+    - lxc_container_create-commands
 
 - name: Write default container config
   lineinfile:
@@ -150,7 +150,7 @@
   notify:
     - Lxc container restart
   tags:
-    - lxc-container-config
+    - lxc_container_create-config
 
 - name: Ensure bind mount host directories exists
   file:
@@ -170,7 +170,7 @@
   notify:
     - Lxc container restart
   tags:
-    - lxc-container-config
+    - lxc_container_create-config
 
 # NOTE(cloudnull): Should a container already be up and running with a defined container interface
 #                  the shell command will use the MAC address already set within the container as
@@ -190,7 +190,7 @@
   when:
     - lxc_container_fixed_mac | bool
   tags:
-    - lxc-container-networks
+    - lxc_container_create-networks
 
 # NOTE(cloudnull): This task is being done to allow a container to have a static mac address.
 #                  before this task a container had a dynamic mac address which would
@@ -215,7 +215,7 @@
   when:
     - lxc_container_fixed_mac | bool
   tags:
-    - lxc-container-networks
+    - lxc_container_create-networks
 
 - name: Gather hardware addresses to be used as facts
   command: cat /var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}.hwaddr
@@ -226,7 +226,7 @@
   when:
     - lxc_container_fixed_mac | bool
   tags:
-    - lxc-container-networks
+    - lxc_container_create-networks
 
 # NOTE(cloudnull): To dynamically set the the mac address "facts" Ansible line format is being used
 - name: Set fixed hardware address fact
@@ -236,7 +236,7 @@
   when:
     - lxc_container_fixed_mac | bool
   tags:
-    - lxc-container-networks
+    - lxc_container_create-networks
 
 - name: LXC host config for container networks
   template:
@@ -248,7 +248,7 @@
   with_dict: "{{ container_networks | default({}) }}"
   delegate_to: "{{ physical_host }}"
   tags:
-    - lxc-container-networks
+    - lxc_container_create-networks
 
 - name: Create start
   lxc_container:
@@ -256,7 +256,7 @@
     state: started
   delegate_to: "{{ physical_host }}"
   tags:
-    - lxc-container-create
+    - lxc_container_create-create
 
 - name: Get LXC container PID
   command: >
@@ -265,7 +265,7 @@
   changed_when: false
   delegate_to: "{{ physical_host }}"
   tags:
-    - lxc-container-setup
+    - lxc_container_create-setup
 
 - name: Drop container network file (interfaces)
   template:
@@ -277,7 +277,7 @@
   with_dict: "{{ container_networks | default({}) }}"
   delegate_to: "{{ physical_host }}"
   tags:
-    - lxc-container-setup
+    - lxc_container_create-setup
 
 - name: Drop container network file (routes)
   template:
@@ -293,7 +293,7 @@
   with_dict: "{{ container_networks | default({}) }}"
   delegate_to: "{{ physical_host }}"
   tags:
-    - lxc-container-setup
+    - lxc_container_create-setup
 
 - name: Drop container setup script
   template:
@@ -304,7 +304,7 @@
     mode: "0755"
   delegate_to: "{{ physical_host }}"
   tags:
-    - lxc-container-setup
+    - lxc_container_create-setup
 
 - name: Run container setup script
   command: |
@@ -317,7 +317,7 @@
   failed_when: container_setup.rc != 0
   delegate_to: "{{ physical_host }}"
   tags:
-    - lxc-container-setup
+    - lxc_container_create-setup
 
 # NOTE(major): the lxc.network.veth.pair line must appear *immediately* after
 # the lxc.network.name congfiguration line or it will be ignored.  That's why
@@ -330,7 +330,7 @@
     backup: "true"
   delegate_to: "{{ physical_host }}"
   tags:
-    - lxc-container-networks
+    - lxc_container_create-networks
 
 - name: Container network includes
   lineinfile:
@@ -341,7 +341,7 @@
   when: item.value.interface is defined
   delegate_to: "{{ physical_host }}"
   tags:
-    - lxc-container-networks
+    - lxc_container_create-networks
 
 - name: Create wiring script
   copy:
@@ -352,7 +352,7 @@
     mode: "0755"
   delegate_to: "{{ physical_host }}"
   tags:
-    - lxc-container-networks
+    - lxc_container_create-networks
 
 - name: Run container veth wiring script
   shell: >
@@ -370,7 +370,7 @@
   changed_when: wiring_script.rc == 3
   delegate_to: "{{ physical_host }}"
   tags:
-    - lxc-container-networks
+    - lxc_container_create-networks
 
 # Adds post-down and pre-start hooks
 - name: Drop veth cleanup script
@@ -382,7 +382,7 @@
     mode: "0755"
   delegate_to: "{{ physical_host }}"
   tags:
-    - lxc-container-networks
+    - lxc_container_create-networks
 
 # This is being defined due to an issue with dangling veth pairs.
 #  TODO(someone) This should be removed once an upstream patch has
@@ -398,7 +398,7 @@
     - "lxc.hook.post-stop = /var/lib/lxc/{{ inventory_hostname }}/veth-cleanup.sh"
   delegate_to: "{{ physical_host }}"
   tags:
-    - lxc-container-networks
+    - lxc_container_create-networks
 
 # Flush the handlers to ensure the container and networking is online.
 - meta: flush_handlers
@@ -414,7 +414,7 @@
   until: ssh_wait_check | success
   retries: 3
   tags:
-    - lxc-container-networks
+    - lxc_container_create-networks
 
 - name: Install container proxy settings
   template:
@@ -425,7 +425,7 @@
   when:
     - global_environment_variables is defined
   tags:
-    - lxc-container-proxy
+    - lxc_container_create-proxy
 
 - name: Create localhost config
   lineinfile:
@@ -437,7 +437,7 @@
     mode: "0644"
   remote_user: root
   tags:
-    - lxc-container-hostname
+    - lxc_container_create-hostname
 
 - name: Create domain config
   lineinfile:
@@ -449,7 +449,7 @@
     mode: "0644"
   remote_user: root
   tags:
-    - lxc-container-hostname
+    - lxc_container_create-hostname
 
 - name: Create hostname
   copy:
@@ -460,10 +460,10 @@
     mode: "0644"
   remote_user: root
   tags:
-    - lxc-container-hostname
+    - lxc_container_create-hostname
 
 - name: Setup hostname
   command: hostname -F /etc/hostname
   remote_user: root
   tags:
-    - lxc-container-hostname
+    - lxc_container_create-hostname
