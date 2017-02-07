@@ -21,7 +21,7 @@ Vagrant.configure(2) do |config|
     end
     centos7.vm.provision "shell", inline: <<-SHELL
       sudo su -
-      cd /home/vagrant/sync
+      cd /vagrant
       ./run_tests.sh
     SHELL
   end
