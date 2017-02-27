@@ -92,13 +92,15 @@ lxc_image_cache_server: images.linuxcontainers.org
 #   --server SERVER_TO_GET_IMAGES_FROM
 lxc_container_template: download
 lxc_container_variant: default
+lxc_container_download_template_extra_options: ""
 lxc_container_download_template_options: >
   --dist {{ lxc_container_map.distro }}
   --release {{ lxc_container_map.release }}
   --arch {{ lxc_container_map.arch }}
   --force-cache
   --server {{ lxc_image_cache_server }}
-  --variant={{ lxc_container_variant }}
+  --variant={{ properties['lxc_container_variant'] | default(lxc_container_variant) }}
+  {{ lxc_container_download_template_extra_options }}
 
 # Toggle the restart of containers via the handler.
 lxc_container_allow_restarts: yes
