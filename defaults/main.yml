@@ -74,6 +74,14 @@ lxc_container_fs_type: ext4
 # using the directory backing.
 lxc_container_vg_name: lxc
 
+# Scripts allowing the configuration of pre/post-up/down scripts in Ubuntu
+# interface files. These are merged with per-interface scripts defined in the
+# container_networks dict
+lxc_container_default_preup: []
+lxc_container_default_postup: []
+lxc_container_default_predown: []
+lxc_container_default_postdown: []
+
 lxc_container_default_mtu: "1500"
 
 lxc_container_domain: "openstack.local"
@@ -110,4 +118,3 @@ lxc_container_network_veth_pair: "{{ inventory_hostname[-8:].replace('-', '').re
 
 # Enable fixed mac address generation for an lxc container
 lxc_container_fixed_mac: false
-

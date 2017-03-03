@@ -10,10 +10,6 @@ iface {{ item.value.interface }} inet static
     gateway {{ item.value.gateway }}
 {% endif %}
     mtu {{ item.value.mtu|default(lxc_container_default_mtu) }}
-    # needed to enable gratuitous arps on interface events
-    post-up sysctl -w net.ipv4.conf.$IFACE.arp_notify=1
-    # needed to force an interface event (setting mac to what it already is)
-    post-up ip link set $IFACE address $(cat /sys/class/net/$IFACE/address)
 {% if item.value.static_routes is defined %}
 {% for route in item.value.static_routes %}
     post-up ip route add {{ route['cidr'] }} via {{ route['gateway'] }} || true
@@ -22,4 +18,16 @@ iface {{ item.value.interface }} inet static
 {% else %}
 iface {{ item.value.interface }} inet manual
 {% endif %}
+{% for item in item.value.preup | default([]) | union(lxc_container_default_preup) %}
+    pre-up {{ item }}
+{% endfor %}
+{% for item in item.value.postup | default([]) | union(lxc_container_default_postup) %}
+    post-up {{ item }}
+{% endfor %}
+{% for item in item.value.predown | default([]) | union(lxc_container_default_predown) %}
+    pre-down {{ item }}
+{% endfor %}
+{% for item in item.value.postdown | default([]) | union(lxc_container_default_postdown) %}
+    post-down {{ item }}
+{% endfor %}
 ### end generated network for [ {{ item.value.interface }} ] ###

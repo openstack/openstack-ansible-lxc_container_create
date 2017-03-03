@@ -29,3 +29,9 @@ lxc_container_map:
   distro: ubuntu
   arch: "{{ lxc_architecture_mapping.get( hostvars[physical_host]['ansible_architecture'] | lower ) }}"
   release: xenial
+
+lxc_container_default_postup:
+  # needed to enable gratuitous arps on interface events
+  - "sysctl -w net.ipv4.conf.$IFACE.arp_notify=1"
+  # needed to force an interface event (setting mac to what it already is)
+  - "ip link set $IFACE address $(cat /sys/class/net/$IFACE/address)"
