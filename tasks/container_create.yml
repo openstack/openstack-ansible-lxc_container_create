@@ -417,14 +417,14 @@
   tags:
     - lxc_container_create-networks
 
-- name: Install container proxy settings
-  template:
+- name: Add global_environment_variables to environment file
+  blockinfile:
     dest: "/etc/environment"
-    src: "environment.j2"
-    mode: "0644"
+    state: present
+    marker: "# {mark} Managed by OpenStack-Ansible"
+    insertbefore: EOF
+    block: "{{ lookup('template', 'environment.j2') }}"
   remote_user: root
-  when:
-    - global_environment_variables is defined
   tags:
     - lxc_container_create-proxy
 

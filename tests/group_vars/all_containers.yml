@@ -32,4 +32,4 @@ properties:
   service_name: "{{ inventory_hostname }}"
 
 global_environment_variables:
-  PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  foo: "bar"
