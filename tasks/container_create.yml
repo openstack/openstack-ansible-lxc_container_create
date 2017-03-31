@@ -469,3 +469,11 @@
   remote_user: root
   tags:
     - lxc_container_create-hostname
+
+- name: Allow the usage of local facts
+  file:
+    path: /etc/ansible/facts.d/
+    state: directory
+  tags:
+    - lxc_container_create-install
+
