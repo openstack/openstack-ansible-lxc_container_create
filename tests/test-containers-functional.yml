@@ -79,7 +79,7 @@
     - name: Check /etc/enviroment matches expectations
       assert:
         that:
-          - "'/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games' in environment_content"
+          - "'foo=bar' in environment_content"
     - name: Test connectivity to external address
       shell: ping -c 3 8.8.8.8
       register: ping_external_address
