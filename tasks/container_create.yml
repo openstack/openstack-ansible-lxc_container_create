@@ -405,8 +405,7 @@
 - meta: flush_handlers
 
 - name: Wait for ssh to be available
-  local_action:
-    module: wait_for
+  wait_for:
     port: "{{ ansible_port | default('22') }}"
     host: "{{ ansible_host | default(inventory_hostname) }}"
     search_regex: OpenSSH
@@ -414,6 +413,7 @@
   register: ssh_wait_check
   until: ssh_wait_check | success
   retries: 3
+  delegate_to: "{{ physical_host }}"
   tags:
     - lxc_container_create-networks
 
@@ -476,4 +476,3 @@
     state: directory
   tags:
     - lxc_container_create-install
-
