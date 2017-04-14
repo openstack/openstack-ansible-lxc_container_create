@@ -166,7 +166,7 @@
 - name: Write default container config
   lineinfile:
     dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
-    line: "{{ item | replace('=', ' = ') | regex_replace('\\s+', ' ') }}"
+    line: "{{ item | replace('=', ' = ', 1) | regex_replace('\\s+', ' ') }}"
     backup: "true"
   with_items: "{{ lxc_container_default_config_list | union(lxc_container_config_list) }}"
   delegate_to: "{{ physical_host }}"
@@ -186,7 +186,7 @@
 - name: Add bind mount configuration to container
   lineinfile:
     dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
-    line: "lxc.mount.entry = {{ item['host_directory'] }} {{ item['container_directory'].lstrip('/') }} none bind 0 0"
+    line: "lxc.mount.entry = {{ item['host_directory'] }} {{ item['container_directory'].lstrip('/') }} none bind,create=dir 0 0"
     backup: "true"
   with_items: "{{ lxc_container_default_bind_mounts | union(lxc_container_bind_mounts) }}"
   delegate_to: "{{ physical_host }}"
