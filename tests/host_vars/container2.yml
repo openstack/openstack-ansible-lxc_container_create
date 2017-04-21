@@ -1,4 +1,7 @@
 ---
+ansible_host: 10.100.100.3
+ansible_become: True
+ansible_user: root
 lxc_container_config_list:
   - "lxc.aa_profile=unconfined"
 

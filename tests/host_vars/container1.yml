@@ -1,4 +1,7 @@
 ---
+ansible_host: 10.100.100.2
+ansible_become: True
+ansible_user: root
 lxc_container_config_list:
   - "lxc.aa_profile=lxc-openstack"
   - "lxc.mount.entry=/openstack/{{ inventory_hostname }} opt/test1 none bind 0 0"
