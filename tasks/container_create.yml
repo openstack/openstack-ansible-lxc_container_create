@@ -326,7 +326,7 @@
 - name: Add veth pair name to match container name
   lineinfile:
     dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
-    line: "lxc.network.veth.pair = {{ inventory_hostname[-8:].replace('-', '').replace('_', '') }}_eth0"
+    line: "lxc.network.veth.pair = {{ lxc_container_network_veth_pair_prefix }}_eth0"
     insertafter: "^lxc.network.name"
     backup: "true"
   delegate_to: "{{ physical_host }}"
