@@ -290,7 +290,8 @@
   when:
     - lxc_container_route_interface is defined
     - lxc_container_default_route_interfaces is defined
-    - item.value.static_routes is defined
+    - item.value.static_routes is defined or
+      (item.value.gateway is defined and ansible_pkg_mgr == "zypper")
   with_dict: "{{ container_networks | default({}) }}"
   delegate_to: "{{ physical_host }}"
   tags:
