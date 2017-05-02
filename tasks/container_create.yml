@@ -13,6 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+- name: Read custom facts from previous runs
+  setup:
+    filter: ansible_local
+  delegate_to: "{{ physical_host }}"
+  tags:
+    - always
+
 - name: Check for lxc volume group
   shell: "(which vgs > /dev/null && vgs | grep -o '{{ lxc_container_vg_name }}') || false"
   register: vg_result
@@ -199,7 +206,7 @@
 #                  resolve the rotating mac address issue this task is setting the mac in a hwaddr
 #                  file and a lookup is being used in the container-interface.ini template to render
 #                  the static hardware address as expected.
-- name: Set unique interface mac address
+- name: Set unique interface mac address (when no facts exist)
   environment:
     hexchars: "0123456789abcdef"
   shell: |
@@ -215,8 +222,29 @@
   delegate_to: "{{ physical_host }}"
   when:
     - lxc_container_fixed_mac | bool
+    - (ansible_local is not defined or
+       'mac' not in ansible_local or
+       inventory_hostname not in ansible_local['mac'])
   tags:
     - lxc_container_create-networks
+
+# NOTE(palendae): If we have saved MACs, write those out instead of generating new ones.
+# Parentheses on the mac in ansible_local check to make the YAML parser happy.
+- name: Reuse saved interface mac address from host facts
+  shell: |
+      echo {{ item.value }} > /var/lib/lxc/{{ inventory_hostname }}/{{ item.key }}.hwaddr
+  args:
+   executable: /bin/bash
+   creates: "/var/lib/lxc/{{ inventory_hostname }}/{{ item.key }}.hwaddr"
+  with_dict: "{{ ansible_local['mac'][inventory_hostname] | default({}) }}"
+  delegate_to: "{{ physical_host }}"
+  when:
+   - lxc_container_fixed_mac | bool
+   - ansible_local is defined
+   - ('mac' in ansible_local)
+   - inventory_hostname in ansible_local['mac']
+  tags:
+   - lxc_container_create-networks
 
 - name: Gather hardware addresses to be used as facts
   command: cat /var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}.hwaddr
@@ -238,6 +266,30 @@
     - lxc_container_fixed_mac | bool
   tags:
     - lxc_container_create-networks
+
+# NOTE(palendae): If a unique identifier (like the hostname) is not provided as the marker, only one block will be written.
+# Each host will be written once, and whichever one came last will be the only one in the file.
+- name: Ensure MAC address fact cache is up-to-date
+  blockinfile:
+    dest: /etc/ansible/facts.d/mac.fact
+    marker: "# {mark} Managed by OpenStack-Ansible {{ inventory_hostname }}"
+    block: "{{ lookup('template', 'macs.fact.j2') }}"
+    create: yes
+  when:
+    - lxc_container_fixed_mac | bool
+  delegate_to: "{{ physical_host }}"
+  tags:
+    - lxc_container_create-networks
+
+# NOTE(palendae): This is necessary to read any local facts in to the 'ansible_local' dict.
+- name: Read local facts in for use
+  setup:
+    filter: ansible_local
+  when:
+    - lxc_container_fixed_mac | bool
+  delegate_to: "{{ physical_host }}"
+  tags:
+    - always
 
 - name: LXC host config for container networks
   template:
