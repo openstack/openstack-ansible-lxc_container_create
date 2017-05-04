@@ -18,10 +18,6 @@
 #   Ansible iterator type is `with_dict`.
 lxc_container_interface: debian-interface.cfg.j2
 
-# Notice this is already resolved in the debian interface file
-lxc_container_route_interface: false
-lxc_container_default_route_interfaces: false
-
 # Note this is a used in an iterable and requires the <item.value.interface> variable
 lxc_container_interface_target: "/etc/network/interfaces.d/{{ item.value.interface }}.cfg"
 
