@@ -83,7 +83,7 @@
         that:
           - "'foo=bar' in environment_content"
     - name: Test connectivity to external address
-      shell: ping -c 3 8.8.8.8
+      shell: ping -i 5 -c 6 8.8.8.8
       register: ping_external_address
       failed_when: false
     - name: Verify connectivity to external address
