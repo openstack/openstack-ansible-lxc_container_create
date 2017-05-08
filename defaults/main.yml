@@ -126,3 +126,6 @@ lxc_container_network_veth_pair: "{{ lxc_container_network_veth_pair_prefix }}_{
 
 # Enable fixed mac address generation for an lxc container
 lxc_container_fixed_mac: false
+
+# Enable destroying then recreating containers
+lxc_container_recreate: false

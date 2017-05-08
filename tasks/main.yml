@@ -48,6 +48,12 @@
   tags:
     - always
 
+- include: container_destroy.yml
+  when:
+    - lxc_container_recreate | bool
+  tags:
+    - lxc-container-recreate
+
 - include: container_create.yml
   when:
     - physical_host is defined
