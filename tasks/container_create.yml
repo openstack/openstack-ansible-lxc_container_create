@@ -476,3 +476,10 @@
     state: directory
   tags:
     - lxc_container_create-install
+
+- name: Record the container variant deployed
+  ini_file:
+    dest: "/etc/ansible/facts.d/openstack_ansible.fact"
+    section: lxc
+    option: variant
+    value: "{{ properties['lxc_container_variant'] | default(lxc_container_variant) }}"
