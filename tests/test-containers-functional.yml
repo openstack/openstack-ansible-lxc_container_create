@@ -53,10 +53,13 @@
       command: grep "lxc.mount.entry = /openstack/container1 opt/test1 none bind 0 0" /var/lib/lxc/container1/config
 
     - name: Check for the presence of the right bound mount for container2
-      command: grep "lxc.mount.entry = /openstack/container2/test2 opt/test2 none bind 0 0" /var/lib/lxc/container2/config
+      command: grep "lxc.mount.entry = {{ development_repo_directory }} {{ development_repo_directory | relpath('/') }} none bind 0 0" /var/lib/lxc/container2/config
 
     - name: Check for the presence of the default bound mount for container3
       command: grep "lxc.mount.entry = /openstack/backup/container3" /var/lib/lxc/container3/config
+
+  vars_files:
+    - common/test-vars.yml
 
 - name: Check for the bind mount in container1
   hosts: container1
