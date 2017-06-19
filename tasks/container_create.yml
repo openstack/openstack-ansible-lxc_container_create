@@ -258,31 +258,21 @@
   tags:
     - lxc_container_create-create
 
-- name: Get LXC container PID
-  command: >
-    lxc-info -pHn {{ inventory_hostname }}
-  register: container_pid
-  changed_when: false
-  delegate_to: "{{ physical_host }}"
-  tags:
-    - lxc_container_create-setup
-
 - name: Drop container network file (interfaces)
   template:
     src: "{{ lxc_container_interface }}"
-    dest: "/proc/{{ container_pid.stdout }}/root{{ lxc_container_interface_target }}"
+    dest: "{{ lxc_container_interface_target }}"
     owner: "root"
     group: "root"
     mode: "0644"
   with_dict: "{{ container_networks | default({}) }}"
-  delegate_to: "{{ physical_host }}"
   tags:
     - lxc_container_create-setup
 
 - name: Drop container network file (routes)
   template:
     src: "{{ lxc_container_route_interface }}"
-    dest: "/proc/{{ container_pid.stdout }}/root{{ lxc_container_default_route_interfaces }}"
+    dest: "{{ lxc_container_default_route_interfaces }}"
     owner: "root"
     group: "root"
     mode: "0644"
@@ -291,31 +281,24 @@
     - lxc_container_default_route_interfaces | bool
     - item.value.static_routes is defined
   with_dict: "{{ container_networks | default({}) }}"
-  delegate_to: "{{ physical_host }}"
   tags:
     - lxc_container_create-setup
 
 - name: Drop container setup script
   template:
     src: "container-setup.sh.j2"
-    dest: "/proc/{{ container_pid.stdout }}/root/opt/container-setup.sh"
+    dest: "/opt/container-setup.sh"
     owner: "root"
     group: "root"
     mode: "0755"
-  delegate_to: "{{ physical_host }}"
   tags:
     - lxc_container_create-setup
 
 - name: Run container setup script
-  command: |
-    lxc-attach --name "{{ inventory_hostname }}" \
-               --logfile {{ lxc_container_log_path }}/lxc-{{ inventory_hostname }}.log \
-               --logpriority {{ (debug | bool) | ternary('DEBUG', 'INFO') }} \
-               -- /opt/container-setup.sh
+  command: /opt/container-setup.sh
   register: container_setup
   changed_when: false
   failed_when: container_setup.rc != 0
-  delegate_to: "{{ physical_host }}"
   tags:
     - lxc_container_create-setup
 
