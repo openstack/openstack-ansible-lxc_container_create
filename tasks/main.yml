@@ -13,6 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+- name: Allow the usage of local facts
+  file:
+    path: /etc/ansible/facts.d/
+    state: directory
+  delegate_to: "{{ physical_host }}"
+  tags:
+    - lxc_container_create-install
+
 - name: Ansible version and LXC backing store check
   fail:
     msg: "Using overlayfs is not supported when using Ansible version < 2"
