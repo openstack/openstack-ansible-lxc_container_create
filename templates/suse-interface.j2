@@ -2,12 +2,10 @@
 
 ### start generated network for [ {{ item.value.interface }} ] ###
 STARTMODE=auto
-{% if item.value.address is defined %}
 BOOTPROTO=static
+{% if item.value.address is defined %}
 IPADDR={{ item.value.address }}
 NETMASK={{ item.value.netmask }}
-{% else %}
-BOOTPROTO=dhcp
 {% endif %}
 MTU={{ item.value.mtu|default(lxc_container_default_mtu) }}
 ### end generated network for [ {{ item.value.interface }} ] ###
