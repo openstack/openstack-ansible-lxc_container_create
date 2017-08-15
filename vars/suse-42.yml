@@ -27,4 +27,4 @@ lxc_container_interface_target: "/etc/sysconfig/network/ifcfg-{{ item.value.inte
 lxc_container_map:
   distro: opensuse
   arch: amd64
-  release: "{{ ansible_distribution_version }}"
+  release: "{{ hostvars[physical_host]['ansible_distribution_version'] }}"
