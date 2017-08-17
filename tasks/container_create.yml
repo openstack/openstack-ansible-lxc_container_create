@@ -518,6 +518,27 @@
   tags:
     - lxc_container_create-hostname
 
+- name: Ensure sysctl can be applied
+  template:
+    src: "sysctl-container.init.j2"
+    dest: "/etc/systemd/system/sysctl-container.service"
+    mode: "0644"
+    owner: "root"
+    group: "root"
+  remote_user: root
+  tags:
+    - lxc_container_create-sysctl
+
+- name: Enable container sysctl service
+  service:
+    name: "sysctl-container"
+    state: started
+    enabled: yes
+    daemon_reload: yes
+  remote_user: root
+  tags:
+    - lxc_container_create-sysctl
+
 - name: Allow the usage of local facts
   file:
     path: /etc/ansible/facts.d/
