@@ -93,3 +93,40 @@
       assert:
         that:
           - ping_external_address.rc == 0
+
+# TODO(evrardjp): Move this to testinfra
+- name: Apply a sysctl to test if it can be applied consistenty
+  hosts: container3
+  tasks:
+    - name: Allow consuming apps to bind on non local addresses
+      sysctl:
+        name: net.ipv4.ip_nonlocal_bind
+        value: 1
+        sysctl_set: yes
+        state: present
+
+- name: Bump the container state
+  hosts: localhost
+  user: root
+  become: true
+  tasks:
+    - name: Stop container
+      command: "lxc-stop -n container3"
+      changed_when: false
+    - name: Start container
+      command: "lxc-start -d -n container3"
+      changed_when: false
+
+- name: Check if the sysctl was well applied
+  hosts: container3
+  tasks:
+    - name: Check the sysctl is persistent
+      command: sysctl -n net.ipv4.ip_nonlocal_bind
+      register: nonlocalbind
+      changed_when: false
+    - debug:
+        var: nonlocalbind
+    - name: Verify the sysctl is set
+      assert:
+        that:
+          - "'1' in nonlocalbind.stdout"
