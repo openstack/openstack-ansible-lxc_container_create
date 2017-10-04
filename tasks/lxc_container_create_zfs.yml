@@ -13,6 +13,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Not Implemented
-  fail:
-    msg: "ZFS backed containers has not been implemented yet."
+# ZFS is a COW filesystem, so reuse the COW tasks
+- include: "lxc_container_create_cow.yml"
