@@ -1,0 +1,54 @@
+---
+# Copyright 2017, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Due to https://github.com/ansible/ansible-modules-extras/issues/2577 the
+# next two tasks do not use the lxc_container module.
+# TODO(odyssey4me): Revisit this once a fix has merged
+- name: Check if container exists
+  command: "lxc-info -n {{ inventory_hostname }}"
+  failed_when: false
+  delegate_to: "{{ physical_host }}"
+  register: lxc_container_info
+
+# Due to https://bugs.launchpad.net/ubuntu/+source/lxc/+bug/1591510
+# the '-B' option is used, instead of the more understandable
+# '--backingstore'.
+# TODO(odyssey4me): Revisit this once a fix has merged
+# NOTE(hwoarang) lxc-copy is only available since lxc-2.0.0 so emulate
+# its behavior using the old lxc-clone command. This is only a problem
+# on openSUSE so it's safe to remove it when lxc-2.X becomes the default
+# option for openSUSE in the openstack-ansible-lxc_hosts role.
+- block:
+    - name: Create container (cow)
+      command: >
+        lxc-copy --snapshot -B {{ lxc_container_backing_store }}
+        --name {{ lxc_container_base_name }}
+        --newname {{ inventory_hostname }}
+        -L {{ properties.container_fs_size | default(lxc_container_fs_size) }}
+        --logfile {{ lxc_container_log_path }}/lxc-{{ inventory_hostname }}.log
+        --logpriority {{ (debug | bool) | ternary('DEBUG', 'INFO') }}
+      delegate_to: "{{ physical_host }}"
+  rescue:
+    # NOTE(hwoarang) lxc-clone does not support the common
+    # --logfile/logpriority options so we just redirect everything to the log
+    # which is probably the best we can do.
+    - name: Create container (cow) (fallback)
+      shell: >
+        lxc-clone -s -B {{ lxc_container_backing_store }} -L {{ properties.container_fs_size | default(lxc_container_fs_size) }}
+        {{ lxc_container_base_name }} {{ inventory_hostname }} &>>
+        {{ lxc_container_log_path }}/lxc-{{ inventory_hostname }}.log
+      delegate_to: "{{ physical_host }}"
+  when:
+    - lxc_container_info.rc != 0
