@@ -26,29 +26,14 @@
 # the '-B' option is used, instead of the more understandable
 # '--backingstore'.
 # TODO(odyssey4me): Revisit this once a fix has merged
-# NOTE(hwoarang) lxc-copy is only available since lxc-2.0.0 so emulate
-# its behavior using the old lxc-clone command. This is only a problem
-# on openSUSE so it's safe to remove it when lxc-2.X becomes the default
-# option for openSUSE in the openstack-ansible-lxc_hosts role.
-- block:
-    - name: Create container (cow)
-      command: >
-        lxc-copy --snapshot -B {{ lxc_container_backing_store }}
-        --name {{ lxc_container_base_name }}
-        --newname {{ inventory_hostname }}
-        -L {{ properties.container_fs_size | default(lxc_container_fs_size) }}
-        --logfile {{ lxc_container_log_path }}/lxc-{{ inventory_hostname }}.log
-        --logpriority {{ (debug | bool) | ternary('DEBUG', 'INFO') }}
-      delegate_to: "{{ physical_host }}"
-  rescue:
-    # NOTE(hwoarang) lxc-clone does not support the common
-    # --logfile/logpriority options so we just redirect everything to the log
-    # which is probably the best we can do.
-    - name: Create container (cow) (fallback)
-      shell: >
-        lxc-clone -s -B {{ lxc_container_backing_store }} -L {{ properties.container_fs_size | default(lxc_container_fs_size) }}
-        {{ lxc_container_base_name }} {{ inventory_hostname }} &>>
-        {{ lxc_container_log_path }}/lxc-{{ inventory_hostname }}.log
-      delegate_to: "{{ physical_host }}"
+- name: Create container (cow)
+  command: >
+    lxc-copy --snapshot -B {{ lxc_container_backing_store }}
+    --name {{ lxc_container_base_name }}
+    --newname {{ inventory_hostname }}
+    -L {{ properties.container_fs_size | default(lxc_container_fs_size) }}
+    --logfile {{ lxc_container_log_path }}/lxc-{{ inventory_hostname }}.log
+    --logpriority {{ (debug | bool) | ternary('DEBUG', 'INFO') }}
+  delegate_to: "{{ physical_host }}"
   when:
     - lxc_container_info.rc != 0
