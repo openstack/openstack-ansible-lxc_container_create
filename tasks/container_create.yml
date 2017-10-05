@@ -152,6 +152,10 @@
     --logfile {{ lxc_container_log_path }}/lxc-{{ inventory_hostname }}.log
     --logpriority {{ (debug | bool) | ternary('DEBUG', 'INFO') }}
   delegate_to: "{{ physical_host }}"
+  register: _lxc_container_create
+  until: _lxc_container_create | success
+  retries: 3
+  delay: 5
   when: _lxc_container_state.stdout.find('STOPPED') != -1
 
 - name: Execute container commands
