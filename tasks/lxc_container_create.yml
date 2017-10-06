@@ -38,10 +38,12 @@
 
 - name: Check container state
   command: "lxc-info -n {{ inventory_hostname }} --state"
-  failed_when: false
   changed_when: false
   delegate_to: "{{ physical_host }}"
   register: _lxc_container_state
+  until: _lxc_container_state | success
+  retries: 3
+  delay: 5
 
 # Due to https://github.com/ansible/ansible-modules-extras/issues/2691
 # this uses the LXC CLI tools to ensure that we get logging.
