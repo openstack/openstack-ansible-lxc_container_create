@@ -13,14 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Create a zfs backend
-- include: test-create-zfs-dev.yml
-
-# Create a btrfs backend
-- include: test-create-btrfs-dev.yml
-
-# Setup the host
-- include: common/test-setup-host.yml
-
-# Test container creation
-- include: test-containers-functional.yml
+lxc_container_backing_store: dir

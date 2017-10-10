@@ -13,6 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Not Implemented
-  fail:
-    msg: "BTRFS backed containers has not been implemented yet."
+- include: lxc_container_cow.yml
