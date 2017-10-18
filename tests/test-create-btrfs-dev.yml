@@ -22,7 +22,7 @@
     - block:
       - name: Install BTRFS packages
         package:
-          name: "{{ zfs_package[ansible_distribution | lower] }}"
+          name: "{{ btrfs_package[ansible_distribution | lower] }}"
           state: present
 
       - name: Create base directories
