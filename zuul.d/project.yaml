@@ -26,7 +26,6 @@
         - openstack-ansible-overlayfs-ubuntu-xenial
         - openstack-ansible-zfs-ubuntu-xenial
     gate:
-      queue: openstack-ansible
       jobs:
         - openstack-ansible-linters
         - openstack-ansible-dir-ubuntu-xenial
