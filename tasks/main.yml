@@ -21,12 +21,11 @@
   tags:
     - always
 
-- name: Ansible version and LXC backing store check
+- name: Check the physical_host variable is set
   fail:
-    msg: "Using overlayfs is not supported when using Ansible version < 2"
+    msg: "The physical_host variable is not defined."
   when:
-    - lxc_container_backing_store == "overlayfs"
-    - ansible_version.major < 2
+    - physical_host is undefined
   tags:
     - always
 
@@ -81,23 +80,17 @@
 
 - include: lxc_container_destroy.yml
   when:
-    - physical_host is defined
-    - inventory_hostname is defined
     - physical_host != inventory_hostname
     - lxc_container_recreate | bool
 
 - include: lxc_container_create.yml
   when:
-    - physical_host is defined
-    - inventory_hostname is defined
     - physical_host != inventory_hostname
   tags:
     - lxc-create
 
 - include: lxc_container_config.yml
   when:
-    - physical_host is defined
-    - inventory_hostname is defined
     - physical_host != inventory_hostname
   tags:
     - lxc-config
