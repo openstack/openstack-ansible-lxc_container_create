@@ -58,6 +58,7 @@ lxc_architecture_mapping:
   x86_64: amd64
   ppc64le: ppc64el
   s390x: s390x
+  armv7l: armhf
 
 # lxc container rootfs directory and cache path
 lxc_container_directory: "/var/lib/lxc"
@@ -69,11 +70,18 @@ lxc_container_rootfs_directory: "{{ lxc_container_directory }}/{{ container_name
 lxc_container_fs_size: 5G
 lxc_container_fs_type: ext4
 
+# The container creation process now allows ``copy-on-write`` to be set as
+#  the ``lxc_container_backing_method`` when the
+#  ``lxc_container_backing_store`` is set to ``lvm``. When this is set it
+#  will use a snapshot of the base container to build the containers.
+lxc_container_backing_method: null
+
 # The container backing store can be set to 'overlayfs' to use overlayfs
 # This should only be done for production use with a linux kernel > 3.14
 # which is when overlayfs was merged into the mainline kernel.
 # lxc_container_backing_store: overlayfs
-# Other store options are "dir" and "lvm".
+# Other store options are: ["machinectl", "btrfs", "dir", "zfs", "lvm"].
+lxc_container_backing_store: dir
 
 # If the container backing store is LVM, the automatic detection will
 # require the presence of the lxc_container_vg_name volume group. If
@@ -115,6 +123,21 @@ lxc_container_download_template_options: >-
   --arch {{ lxc_container_map.arch }}
   --force-cache
   --server {{ lxc_image_cache_server }}
+  --variant={{ properties['lxc_container_variant'] | default(lxc_container_variant) }}
+  {{ lxc_container_download_template_extra_options }}
+
+## Default machinectl template options
+##  This can be customized to use a local build server and options.
+##  By default these options will be fulfilled by the distro specific
+##  variable files found in vars/
+# lxc_container_download_template_options: >
+#   --dist NAME_OF_DISTRO
+#   --release DISTRO_RELEASE
+#   --arch CONTAINER_ARCH
+lxc_container_machinectl_template_options: >-
+  --dist {{ lxc_container_map.distro }}
+  --release {{ lxc_container_map.release }}
+  --arch {{ lxc_container_map.arch }}
   --variant={{ properties['lxc_container_variant'] | default(lxc_container_variant) }}
   {{ lxc_container_download_template_extra_options }}
 

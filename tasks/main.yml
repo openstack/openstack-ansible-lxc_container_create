@@ -19,23 +19,24 @@
     state: directory
   delegate_to: "{{ physical_host }}"
   tags:
-    - lxc_container_create-install
+    - always
 
-- name: Ansible version and LXC backing store check
+- name: Check the physical_host variable is set
   fail:
-    msg: "Using overlayfs is not supported when using Ansible version < 2"
+    msg: "The physical_host variable is not defined."
   when:
-    - lxc_container_backing_store is defined
-    - lxc_container_backing_store == "overlayfs"
-    - ansible_version.major < 2
+    - physical_host is undefined
+  tags:
+    - always
 
 - name: Kernel version and LXC backing store check
   debug:
     msg: "Using overlayfs is not recommended when using Kernel version < 3.18"
   when:
-    - lxc_container_backing_store is defined
     - lxc_container_backing_store == "overlayfs"
     - hostvars[physical_host]['ansible_kernel'] | version_compare('3.18.0-0-generic', '<')
+  tags:
+    - always
 
 - name: Gather variables for each operating system
   include_vars: "{{ item }}"
@@ -48,16 +49,48 @@
   tags:
     - always
 
-- include: container_destroy.yml
-  when:
-    - lxc_container_recreate | bool
+- name: Read custom facts from previous runs
+  setup:
+    filter: ansible_local
+  delegate_to: "{{ physical_host }}"
   tags:
-    - lxc-container-recreate
+    - always
 
-- include: container_create.yml
+# NOTE(cloudnull): Check for the LXC volume group when creating LVM backed
+#                  containers.
+- block:
+  - name: Check for lxc volume group
+    shell: "(which vgs > /dev/null && vgs | grep -o '{{ lxc_container_vg_name }}') || false"
+    register: vg_result
+    failed_when: false
+    changed_when: vg_result.rc != 0
+    delegate_to: "{{ physical_host }}"
+  - name: LXC VG check
+    fail:
+      msg: >-
+        The "lxc_container_backing_store" option was set to "lvm" but no LXC
+        volume group was found on the physical host. Please check your settings
+        and host setup.
+    when:
+      - vg_result.rc != 0
   when:
-    - physical_host is defined
-    - inventory_hostname is defined
+    - lxc_container_backing_store == 'lvm'
+  tags:
+    - always
+
+- include: lxc_container_destroy.yml
+  when:
+    - physical_host != inventory_hostname
+    - lxc_container_recreate | bool
+
+- include: lxc_container_create.yml
+  when:
     - physical_host != inventory_hostname
   tags:
-    - lxc_container_create
+    - lxc-create
+
+- include: lxc_container_config.yml
+  when:
+    - physical_host != inventory_hostname
+  tags:
+    - lxc-config

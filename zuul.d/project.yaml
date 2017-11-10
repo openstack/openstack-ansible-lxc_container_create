@@ -18,12 +18,16 @@
     check:
       jobs:
         - openstack-ansible-linters
-        - openstack-ansible-functional-centos-7
-        - openstack-ansible-functional-opensuse-423
-        - openstack-ansible-functional-ubuntu-xenial
+        - openstack-ansible-dir-ubuntu-xenial
+        - openstack-ansible-dir-centos-7
+        - openstack-ansible-dir-opensuse-423
+        - openstack-ansible-btrfs-ubuntu-xenial
+        - openstack-ansible-machinectl-ubuntu-xenial
+        - openstack-ansible-overlayfs-ubuntu-xenial
+        - openstack-ansible-zfs-ubuntu-xenial
     gate:
       jobs:
         - openstack-ansible-linters
-        - openstack-ansible-functional-centos-7
-        - openstack-ansible-functional-opensuse-423
-        - openstack-ansible-functional-ubuntu-xenial
+        - openstack-ansible-dir-ubuntu-xenial
+        - openstack-ansible-dir-centos-7
+        - openstack-ansible-dir-opensuse-423

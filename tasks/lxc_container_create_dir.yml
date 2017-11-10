@@ -1,5 +1,5 @@
 ---
-# Copyright 2015, Rackspace US, Inc.
+# Copyright 2017, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,14 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Create a zfs backend
-- include: test-create-zfs-dev.yml
-
-# Create a btrfs backend
-- include: test-create-btrfs-dev.yml
-
-# Setup the host
-- include: common/test-setup-host.yml
-
-# Test container creation
-- include: test-containers-functional.yml
+- name: Create container (dir)
+  lxc_container:
+    name: "{{ inventory_hostname }}"
+    container_log: true
+    container_log_level: "{{ (debug | bool) | ternary('DEBUG', 'INFO') }}"
+    config: "{{ lxc_container_config }}"
+    template: "{{ lxc_container_template }}"
+    state: started
+    backing_store: "{{ lxc_container_backing_store }}"
+    directory: "{{ lxc_container_rootfs_directory }}"
+    template_options: "{{ lxc_container_download_template_options }}"
+  delegate_to: "{{ physical_host }}"

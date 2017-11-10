@@ -13,171 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Read custom facts from previous runs
-  setup:
-    filter: ansible_local
-  delegate_to: "{{ physical_host }}"
-  tags:
-    - always
-
-- name: Check for lxc volume group
-  shell: "(which vgs > /dev/null && vgs | grep -o '{{ lxc_container_vg_name }}') || false"
-  register: vg_result
-  failed_when: false
-  changed_when: vg_result.rc != 0
-  delegate_to: "{{ physical_host }}"
-  when: lxc_container_backing_store is not defined or lxc_container_backing_store == "lvm"
-  tags:
-    - lxc_container_create-vg-detect
-
-- name: Set container backend to "dir" or "lvm" based on whether the lxc VG was found
-  set_fact:
-     lxc_container_backing_store: "{{ (vg_result.rc != 0) | ternary('dir', 'lvm') }}"
-  when: vg_result.rc is defined
-  tags:
-    - lxc_container_create-vg-detect
-
-- name: Container service directories
-  file:
-    path: "{{ item }}"
-    state: "directory"
-  with_items:
-    - "/openstack/{{ inventory_hostname }}"
-    - "/openstack/backup/{{ inventory_hostname }}"
-    - "/openstack/log/{{ inventory_hostname }}"
-    - "{{ lxc_container_directory }}/{{ inventory_hostname }}"
-  delegate_to: "{{ physical_host }}"
-  tags:
-    - lxc_container_create-directories
-
-- name: LXC autodev setup
-  template:
-    src: "autodev.j2"
-    dest: "/var/lib/lxc/{{ inventory_hostname }}/autodev"
-    owner: "root"
-    group: "root"
-    mode: "0755"
-  delegate_to: "{{ physical_host }}"
-  tags:
-    - lxc_container_create-autodev
-
-- name: Create container
-  lxc_container:
-    name: "{{ inventory_hostname }}"
-    container_log: true
-    container_log_level: "{{ (debug | bool) | ternary('DEBUG', 'INFO') }}"
-    config: "{{ lxc_container_config }}"
-    template: "{{ lxc_container_template }}"
-    state: started
-    backing_store: "{{ lxc_container_backing_store }}"
-    directory: "{{ lxc_container_rootfs_directory }}"
-    fs_size: "{{ properties.container_fs_size | default(lxc_container_fs_size) }}"
-    fs_type: "{{ lxc_container_fs_type }}"
-    vg_name: "{{ lxc_container_vg_name }}"
-    template_options: "{{ lxc_container_download_template_options }}"
-  delegate_to: "{{ physical_host }}"
-  when: >
-    lxc_container_backing_store != "overlayfs" or
-    (lxc_container_backing_store == 'lvm' and not
-    (lxc_container_backing_method is defined
-    and lxc_container_backing_method == 'copy-on-write'))
-  tags:
-    - lxc_container_create-create
-
-# Due to https://github.com/ansible/ansible-modules-extras/issues/2577 the
-# next two tasks do not use the lxc_container module.
-# TODO(odyssey4me): Revisit this once a fix has merged
-- name: Check if container exists (copy-on-write backing store)
-  command: "lxc-info -n {{ inventory_hostname }}"
-  failed_when: false
-  delegate_to: "{{ physical_host }}"
-  register: lxc_container_info
-  when: >
-    lxc_container_backing_store == "overlayfs" or
-    (lxc_container_backing_store == 'lvm' and
-    lxc_container_backing_method is defined and
-    lxc_container_backing_method == 'copy-on-write')
-
-# Due to https://bugs.launchpad.net/ubuntu/+source/lxc/+bug/1591510
-# the '-B' option is used, instead of the more understandable
-# '--backingstore'.
-# TODO(odyssey4me): Revisit this once a fix has merged
-# NOTE(hwoarang) lxc-copy is only available since lxc-2.0.0 so emulate
-# its behavior using the old lxc-clone command. This is only a problem
-# on openSUSE so it's safe to remove it when lxc-2.X becomes the default
-# option for openSUSE in the openstack-ansible-lxc_hosts role.
-- block:
-    - name: Create container (copy-on-write backing store)
-      command: >
-        lxc-copy --snapshot -B {{ lxc_container_backing_store }}
-        --name {{ lxc_container_base_name }}
-        --newname {{ inventory_hostname }}
-        -L {{ properties.container_fs_size | default(lxc_container_fs_size) }}
-        --logfile {{ lxc_container_log_path }}/lxc-{{ inventory_hostname }}.log
-        --logpriority {{ (debug | bool) | ternary('DEBUG', 'INFO') }}
-      delegate_to: "{{ physical_host }}"
-  rescue:
-    # NOTE(hwoarang) lxc-clone does not support the common
-    # --logfile/logpriority options so we just redirect everything to the log
-    # which is probably the best we can do.
-    - name: Create container (copy-on-write backing store) (fallback)
-      shell: >
-        lxc-clone -s -B {{ lxc_container_backing_store }} -L {{ properties.container_fs_size | default(lxc_container_fs_size) }}
-        {{ lxc_container_base_name }} {{ inventory_hostname }} &>>
-        {{ lxc_container_log_path }}/lxc-{{ inventory_hostname }}.log
-      delegate_to: "{{ physical_host }}"
-
-  when: >
-    (lxc_container_backing_store == "overlayfs" or
-    (lxc_container_backing_store == 'lvm' and
-    lxc_container_backing_method is defined and
-    lxc_container_backing_method == 'copy-on-write')) and
-    lxc_container_info.rc != 0
-  tags:
-    - lxc_container_create-create
-
-- name: Check container state
-  command: "lxc-info -n {{ inventory_hostname }} --state"
-  failed_when: false
-  changed_when: false
-  delegate_to: "{{ physical_host }}"
-  register: _lxc_container_state
-
-# Due to https://github.com/ansible/ansible-modules-extras/issues/2691
-# this uses the LXC CLI tools to ensure that we get logging.
-# TODO(odyssey4me): revisit this once the bug is fixed and released
-- name: Start the container if it is not already running
-  command: >
-    lxc-start --daemon --name {{ inventory_hostname }}
-    --logfile {{ lxc_container_log_path }}/lxc-{{ inventory_hostname }}.log
-    --logpriority {{ (debug | bool) | ternary('DEBUG', 'INFO') }}
-  delegate_to: "{{ physical_host }}"
-  register: _lxc_container_create
-  until: _lxc_container_create | success
-  retries: 3
-  delay: 5
-  when: _lxc_container_state.stdout.find('STOPPED') != -1
-
 - name: Execute container commands
   lxc_container:
     name: "{{ inventory_hostname }}"
     container_command: |
       {{ lxc_container_commands }}
   delegate_to: "{{ physical_host }}"
-  tags:
-    - lxc_container_create-commands
 
 - name: Write default container config
   lineinfile:
     dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
-    line: "{{ item | replace('=', ' = ') | regex_replace('\\s+', ' ') }}"
+    line: "{{ item | replace('=', ' = ', 1) | regex_replace('\\s+', ' ') }}"
     backup: "true"
   with_items: "{{ lxc_container_default_config_list | union(lxc_container_config_list) }}"
   delegate_to: "{{ physical_host }}"
   notify:
     - Lxc container restart
-  tags:
-    - lxc_container_create-config
 
 - name: Ensure bind mount host directories exists
   file:
@@ -190,126 +41,64 @@
 - name: Add bind mount configuration to container
   lineinfile:
     dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
-    line: "lxc.mount.entry = {{ item['host_directory'] }} {{ item['container_directory'].lstrip('/') }} none bind 0 0"
+    line: "lxc.mount.entry = {{ item['host_directory'] }} {{ item['container_directory'].lstrip('/') }} none bind,create=dir 0 0"
     backup: "true"
   with_items: "{{ lxc_container_default_bind_mounts | union(lxc_container_bind_mounts) }}"
   delegate_to: "{{ physical_host }}"
   notify:
     - Lxc container restart
-  tags:
-    - lxc_container_create-config
 
 # NOTE(cloudnull): Should a container already be up and running with a defined container interface
 #                  the shell command will use the MAC address already set within the container as
 #                  it's value. This allows the tasks to remain idempotent while ensuring that a
 #                  container restart isn't required to set a static mac.
-- name: Set define static mac address from an existing interface
-  shell: |
-    if lxc-attach -n {{ inventory_hostname }} -- cat /sys/class/net/{{ item.value.interface }}/address; then
-      lxc-attach -n {{ inventory_hostname }} -- cat /sys/class/net/{{ item.value.interface }}/address > /var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}.hwaddr
-    fi
-  args:
-    executable: /bin/bash
-    creates: "/var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}.hwaddr"
-  with_dict: "{{ container_networks | default({}) }}"
-  delegate_to: "{{ physical_host }}"
-  failed_when: false
-  when:
-    - lxc_container_fixed_mac | bool
-  tags:
-    - lxc_container_create-networks
-
-# NOTE(cloudnull): This task is being done to allow a container to have a static mac address.
+#                  This task is being done to allow a container to have a static mac address.
 #                  before this task a container had a dynamic mac address which would
 #                  change when a container was restarted. This restart process causes terrible
 #                  issues in several network intensive systems (RabbitMQ, Neutron, etc). To
 #                  resolve the rotating mac address issue this task is setting the mac in a hwaddr
 #                  file and a lookup is being used in the container-interface.ini template to render
 #                  the static hardware address as expected.
-- name: Set unique interface mac address (when no facts exist)
-  environment:
-    hexchars: "0123456789abcdef"
+- name: Set define static mac address from an existing interface
   shell: |
+    C_PID="$(lxc-info --name {{ inventory_hostname }} --pid | awk '/PID:/ {print $2}')"
+    C_ADDR="/proc/${C_PID}/root/sys/class/net/{{ item.value.interface }}/address"
+    HARDWARE_ADDR="/var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}.hwaddr"
+    HEXCHARS="0123456789abcdef"
+    if ! cat "${C_ADDR}" > "${HARDWARE_ADDR}"; then
       echo "00:16:3e$(
         for i in {1..6}; do
-          echo -n ${hexchars:$(( $RANDOM % 16 )):1}
+          echo -n "${HEXCHARS:$(( $RANDOM % 16 )):1}"
         done | sed -e 's/\(..\)/:\1/g'
-      )" > /var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}.hwaddr
+      )" > "${HARDWARE_ADDR}"
+    fi
   args:
     executable: /bin/bash
     creates: "/var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}.hwaddr"
   with_dict: "{{ container_networks | default({}) }}"
   delegate_to: "{{ physical_host }}"
+  tags:
+    - skip_ansible_lint
   when:
     - lxc_container_fixed_mac | bool
-    - (ansible_local is not defined or
-       'mac' not in ansible_local or
-       inventory_hostname not in ansible_local['mac'])
-  tags:
-    - lxc_container_create-networks
-
-# NOTE(palendae): If we have saved MACs, write those out instead of generating new ones.
-# Parentheses on the mac in ansible_local check to make the YAML parser happy.
-- name: Reuse saved interface mac address from host facts
-  shell: |
-      echo {{ item.value }} > /var/lib/lxc/{{ inventory_hostname }}/{{ item.key }}.hwaddr
-  args:
-   executable: /bin/bash
-   creates: "/var/lib/lxc/{{ inventory_hostname }}/{{ item.key }}.hwaddr"
-  with_dict: "{{ ansible_local['mac'][inventory_hostname] | default({}) }}"
-  delegate_to: "{{ physical_host }}"
-  when:
-   - lxc_container_fixed_mac | bool
-   - ansible_local is defined
-   - ('mac' in ansible_local)
-   - inventory_hostname in ansible_local['mac']
-  tags:
-   - lxc_container_create-networks
 
 - name: Gather hardware addresses to be used as facts
-  command: cat /var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}.hwaddr
+  slurp:
+    src: "/var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}.hwaddr"
   changed_when: false
   register: macs
   with_dict: "{{ container_networks | default({}) }}"
   delegate_to: "{{ physical_host }}"
   when:
     - lxc_container_fixed_mac | bool
-  tags:
-    - lxc_container_create-networks
 
 # NOTE(cloudnull): To dynamically set the the mac address "facts" Ansible line format is being used
 - name: Set fixed hardware address fact
-  set_fact: "{{item.item.value.interface }}_mac_address={{ item.stdout }}"
+  set_fact: "{{item.item.value.interface }}_mac_address={{ item.content | b64decode }}"
   with_items:
     - "{{ macs.results }}"
   when:
     - lxc_container_fixed_mac | bool
-  tags:
-    - lxc_container_create-networks
-
-# NOTE(palendae): If a unique identifier (like the hostname) is not provided as the marker, only one block will be written.
-# Each host will be written once, and whichever one came last will be the only one in the file.
-- name: Ensure MAC address fact cache is up-to-date
-  blockinfile:
-    dest: /etc/ansible/facts.d/mac.fact
-    marker: "# {mark} Managed by OpenStack-Ansible {{ inventory_hostname }}"
-    block: "{{ lookup('template', 'macs.fact.j2') }}"
-    create: yes
-  when:
-    - lxc_container_fixed_mac | bool
-  delegate_to: "{{ physical_host }}"
-  tags:
-    - lxc_container_create-networks
-
-# NOTE(palendae): This is necessary to read any local facts in to the 'ansible_local' dict.
-- name: Read local facts in for use
-  setup:
-    filter: ansible_local
-  when:
-    - lxc_container_fixed_mac | bool
-  delegate_to: "{{ physical_host }}"
-  tags:
-    - always
 
 - name: LXC host config for container networks
   template:
@@ -320,16 +109,12 @@
     mode: "0644"
   with_dict: "{{ container_networks | default({}) }}"
   delegate_to: "{{ physical_host }}"
-  tags:
-    - lxc_container_create-networks
 
 - name: Create start
   lxc_container:
     name: "{{ inventory_hostname }}"
     state: started
   delegate_to: "{{ physical_host }}"
-  tags:
-    - lxc_container_create-create
 
 - name: Drop container network file (interfaces)
   template:
@@ -339,8 +124,6 @@
     group: "root"
     mode: "0644"
   with_dict: "{{ container_networks | default({}) }}"
-  tags:
-    - lxc_container_create-setup
 
 - name: Drop container network file (routes)
   template:
@@ -355,8 +138,6 @@
     - item.value.static_routes is defined or
       (item.value.gateway is defined and ansible_pkg_mgr == "zypper")
   with_dict: "{{ container_networks | default({}) }}"
-  tags:
-    - lxc_container_create-setup
 
 - name: Drop container setup script
   template:
@@ -365,16 +146,12 @@
     owner: "root"
     group: "root"
     mode: "0755"
-  tags:
-    - lxc_container_create-setup
 
 - name: Run container setup script
   command: /opt/container-setup.sh
   register: container_setup
   changed_when: false
   failed_when: container_setup.rc != 0
-  tags:
-    - lxc_container_create-setup
 
 # NOTE(major): the lxc.network.veth.pair line must appear *immediately* after
 # the lxc.network.name congfiguration line or it will be ignored.  That's why
@@ -386,8 +163,6 @@
     insertafter: "^lxc.network.name"
     backup: "true"
   delegate_to: "{{ physical_host }}"
-  tags:
-    - lxc_container_create-networks
 
 - name: Container network includes
   lineinfile:
@@ -397,8 +172,6 @@
   with_dict: "{{ container_networks | default({}) }}"
   when: item.value.interface is defined
   delegate_to: "{{ physical_host }}"
-  tags:
-    - lxc_container_create-networks
 
 - name: Create wiring script
   copy:
@@ -408,8 +181,6 @@
     group: "root"
     mode: "0755"
   delegate_to: "{{ physical_host }}"
-  tags:
-    - lxc_container_create-networks
 
 - name: Run container veth wiring script
   command: >
@@ -426,8 +197,6 @@
   failed_when: wiring_script.rc not in [3, 0]
   changed_when: wiring_script.rc == 3
   delegate_to: "{{ physical_host }}"
-  tags:
-    - lxc_container_create-networks
 
 # Adds post-down and pre-start hooks
 - name: Drop veth cleanup script
@@ -438,8 +207,6 @@
     group: "root"
     mode: "0755"
   delegate_to: "{{ physical_host }}"
-  tags:
-    - lxc_container_create-networks
 
 # This is being defined due to an issue with dangling veth pairs.
 #  TODO(someone) This should be removed once an upstream patch has
@@ -454,8 +221,6 @@
     - "lxc.hook.pre-start = /var/lib/lxc/{{ inventory_hostname }}/veth-cleanup.sh"
     - "lxc.hook.post-stop = /var/lib/lxc/{{ inventory_hostname }}/veth-cleanup.sh"
   delegate_to: "{{ physical_host }}"
-  tags:
-    - lxc_container_create-networks
 
 # Flush the handlers to ensure the container and networking is online.
 - meta: flush_handlers
@@ -466,8 +231,6 @@
     delay: "{{ lxc_container_wait_params.delay | default(omit) }}"
     sleep: "{{ lxc_container_wait_params.sleep | default(omit) }}"
     timeout: "{{ lxc_container_wait_params.timeout | default(omit) }}"
-  tags:
-    - lxc_container_create-networks
 
 - name: Add global_environment_variables to environment file
   blockinfile:
@@ -477,8 +240,6 @@
     insertbefore: EOF
     block: "{{ lookup('template', 'environment.j2') }}"
   remote_user: root
-  tags:
-    - lxc_container_create-proxy
 
 - name: Create localhost config
   lineinfile:
@@ -489,8 +250,6 @@
     group: "root"
     mode: "0644"
   remote_user: root
-  tags:
-    - lxc_container_create-hostname
 
 - name: Create domain config
   lineinfile:
@@ -501,8 +260,6 @@
     group: "root"
     mode: "0644"
   remote_user: root
-  tags:
-    - lxc_container_create-hostname
 
 - name: Create hostname
   copy:
@@ -512,15 +269,11 @@
     group: "root"
     mode: "0644"
   remote_user: root
-  tags:
-    - lxc_container_create-hostname
 
 - name: Setup hostname
   command: hostname -F /etc/hostname
   changed_when: false
   remote_user: root
-  tags:
-    - lxc_container_create-hostname
 
 - name: Ensure sysctl can be applied
   template:
@@ -530,8 +283,6 @@
     owner: "root"
     group: "root"
   remote_user: root
-  tags:
-    - lxc_container_create-sysctl
 
 # NOTE(hwoarang) openSUSE randomly fails to start the service
 # with an error like the following one
@@ -551,15 +302,13 @@
   until: _sysctl_service_started|success
   retries: 5
   delay: 5
-  tags:
-    - lxc_container_create-sysctl
 
 - name: Allow the usage of local facts
   file:
     path: /etc/ansible/facts.d/
     state: directory
   tags:
-    - lxc_container_create-install
+    - always
 
 - name: Record the container variant deployed
   ini_file:
@@ -567,3 +316,5 @@
     section: lxc
     option: variant
     value: "{{ properties['lxc_container_variant'] | default(lxc_container_variant) }}"
+  tags:
+    - always
