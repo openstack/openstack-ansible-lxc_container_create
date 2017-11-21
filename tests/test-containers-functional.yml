@@ -21,6 +21,8 @@
     - name: List the running LXC containers present on the host
       command: lxc-ls -1 --fancy --fancy-format name,ipv4 --running
       register: lxc_container_list
+      tags:
+        - skip_ansible_lint
 
     - name: Verify that the expected containers are present with the correct addresses
       # Example stdout:
@@ -38,25 +40,37 @@
       command: grep "^lxc.aa_profile = lxc-openstack$" /var/lib/lxc/container1/config
       register: container1_profile
       failed_when: container1_profile.rc != 0
+      tags:
+        - skip_ansible_lint
 
     - name: Check for the presence of the right aa_profile for container2
       command: grep "^lxc.aa_profile = unconfined$" /var/lib/lxc/container2/config
       register: container2_profile
       failed_when: container2_profile.rc != 0
+      tags:
+        - skip_ansible_lint
 
     - name: Check for the lack of presence of an aa_profile for container3
       command: grep "lxc.aa_profile" /var/lib/lxc/container3/config
       register: container3_profile
       failed_when: container3_profile.rc == 0
+      tags:
+        - skip_ansible_lint
 
     - name: Check for the presence of the right bound mount for container1
       command: grep "lxc.mount.entry = /openstack/container1 opt/test1 none bind,create=dir 0 0" /var/lib/lxc/container1/config
+      tags:
+        - skip_ansible_lint
 
     - name: Check for the presence of the right bound mount for container2
       command: grep "lxc.mount.entry = {{ development_repo_directory }} {{ development_repo_directory | relpath('/') }} none bind,create=dir 0 0" /var/lib/lxc/container2/config
+      tags:
+        - skip_ansible_lint
 
     - name: Check for the presence of the default bound mount for container3
       command: grep "lxc.mount.entry = /openstack/backup/container3" /var/lib/lxc/container3/config
+      tags:
+        - skip_ansible_lint
 
   vars_files:
     - common/test-vars.yml
@@ -69,6 +83,8 @@
       command: ls -1 /opt/test1
       register: container1_test_dir
       failed_when: container1_test_dir.rc != 0
+      tags:
+        - skip_ansible_lint
 
 - name: Test the containers themselves
   hosts: all_containers
@@ -78,17 +94,23 @@
       slurp:
         src: /etc/environment
       register: environment_file
+
     - name: Set /etc/environment contents fact
       set_fact:
         environment_content: "{{ environment_file.content | b64decode }}"
+
     - name: Check /etc/enviroment matches expectations
       assert:
         that:
           - "'foo=bar' in environment_content"
+
     - name: Test connectivity to external address
-      shell: ping -i 5 -c 6 8.8.8.8
+      command: ping -i 5 -c 6 8.8.8.8
       register: ping_external_address
       failed_when: false
+      tags:
+        - skip_ansible_lint
+
     - name: Verify connectivity to external address
       assert:
         that:
@@ -113,6 +135,7 @@
     - name: Stop container
       command: "lxc-stop -n container3"
       changed_when: false
+
     - name: Start container
       command: "lxc-start -d -n container3"
       changed_when: false
@@ -124,8 +147,10 @@
       command: sysctl -n net.ipv4.ip_nonlocal_bind
       register: nonlocalbind
       changed_when: false
+
     - debug:
         var: nonlocalbind
+
     - name: Verify the sysctl is set
       assert:
         that:
