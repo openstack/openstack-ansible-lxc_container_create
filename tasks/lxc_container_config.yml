@@ -13,13 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Execute container commands
-  lxc_container:
-    name: "{{ inventory_hostname }}"
-    container_command: |
-      {{ lxc_container_commands }}
-  delegate_to: "{{ physical_host }}"
-
+# CONTAINER SETUP AND CONFIG
 - name: Write default container config
   lineinfile:
     dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
@@ -27,6 +21,7 @@
     backup: "true"
   with_items: "{{ lxc_container_default_config_list | union(lxc_container_config_list) }}"
   delegate_to: "{{ physical_host }}"
+  register: default_configuration_container
   notify:
     - Lxc container restart
 
@@ -45,40 +40,77 @@
     backup: "true"
   with_items: "{{ lxc_container_default_bind_mounts | union(lxc_container_bind_mounts) }}"
   delegate_to: "{{ physical_host }}"
+  register: bind_configuration_container
   notify:
     - Lxc container restart
 
-# NOTE(cloudnull): Should a container already be up and running with a defined container interface
-#                  the shell command will use the MAC address already set within the container as
-#                  it's value. This allows the tasks to remain idempotent while ensuring that a
-#                  container restart isn't required to set a static mac.
-#                  This task is being done to allow a container to have a static mac address.
-#                  before this task a container had a dynamic mac address which would
-#                  change when a container was restarted. This restart process causes terrible
-#                  issues in several network intensive systems (RabbitMQ, Neutron, etc). To
-#                  resolve the rotating mac address issue this task is setting the mac in a hwaddr
-#                  file and a lookup is being used in the container-interface.ini template to render
-#                  the static hardware address as expected.
-- name: Set define static mac address from an existing interface
-  shell: |
-    C_PID="$(lxc-info --name {{ inventory_hostname }} --pid | awk '/PID:/ {print $2}')"
-    C_ADDR="/proc/${C_PID}/root/sys/class/net/{{ item.value.interface }}/address"
-    HARDWARE_ADDR="/var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}.hwaddr"
-    HEXCHARS="0123456789abcdef"
-    if ! cat "${C_ADDR}" > "${HARDWARE_ADDR}"; then
-      echo "00:16:3e$(
-        for i in {1..6}; do
-          echo -n "${HEXCHARS:$(( $RANDOM % 16 )):1}"
-        done | sed -e 's/\(..\)/:\1/g'
-      )" > "${HARDWARE_ADDR}"
-    fi
-  args:
-    executable: /bin/bash
-    creates: "/var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}.hwaddr"
-  with_dict: "{{ container_networks | default({}) }}"
+### REMOVE IN "S"
+# NOTE(cloudnull): These tasks are cleaning up the old interfaces
+#                  files. Remove this in the "S" release.
+- name: Remove legacy network config for eth0
+  lineinfile:
+    dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
+    regexp: "^lxc.network.*"
+    backup: "true"
+    state: "absent"
   delegate_to: "{{ physical_host }}"
-  tags:
-    - skip_ansible_lint
+
+- name: Create and start the container
+  lxc_container:
+    name: "{{ inventory_hostname }}"
+    state: started
+  delegate_to: "{{ physical_host }}"
+
+- name: Gather container facts
+  setup:
+    gather_subset: "!all"
+
+- name: Drop container setup script
+  template:
+    src: "container-setup.sh.j2"
+    dest: "/opt/container-setup.sh"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+- name: Drop container first run script
+  template:
+    src: "container-first-run.sh.j2"
+    dest: "/var/lib/lxc/{{ inventory_hostname }}/container-first-run.sh"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+  delegate_to: "{{ physical_host }}"
+
+- name: Execute first script
+  command: "/var/lib/lxc/{{ inventory_hostname }}/container-first-run.sh"
+  args:
+    creates: "/var/lib/lxc/{{ inventory_hostname }}/setup.complete"
+  register: container_extra_commands
+  until: container_extra_commands | success
+  retries: 5
+  delay: 2
+  delegate_to: "{{ physical_host }}"
+# CONTAINER SETUP AND CONFIG
+
+
+# VETH AND CONNECTIVITY SETTINGS
+- name: Create container mac script
+  template:
+    src: container_mac_generation.sh.j2
+    dest: "/openstack/{{ inventory_hostname }}/{{ item.value.interface }}_mac_generation.sh"
+    mode: "0755"
+  delegate_to: "{{ physical_host }}"
+  with_dict: "{{ lxc_container_networks_combined }}"
+  when:
+    - lxc_container_fixed_mac | bool
+
+- name: Set define static mac address from an existing interface
+  command: "/openstack/{{ inventory_hostname }}/{{ item.value.interface }}_mac_generation.sh"
+  args:
+    creates: "/var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}.hwaddr"
+  delegate_to: "{{ physical_host }}"
+  with_dict: "{{ lxc_container_networks_combined }}"
   when:
     - lxc_container_fixed_mac | bool
 
@@ -87,12 +119,13 @@
     src: "/var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}.hwaddr"
   changed_when: false
   register: macs
-  with_dict: "{{ container_networks | default({}) }}"
+  with_dict: "{{ lxc_container_networks_combined }}"
   delegate_to: "{{ physical_host }}"
   when:
     - lxc_container_fixed_mac | bool
 
-# NOTE(cloudnull): To dynamically set the the mac address "facts" Ansible line format is being used
+# NOTE(cloudnull): To dynamically set the the mac address "facts" Ansible line
+#                  format is being used
 - name: Set fixed hardware address fact
   set_fact: "{{item.item.value.interface }}_mac_address={{ item.content | b64decode }}"
   with_items:
@@ -107,61 +140,8 @@
     owner: "root"
     group: "root"
     mode: "0644"
-  with_dict: "{{ container_networks | default({}) }}"
-  delegate_to: "{{ physical_host }}"
-
-- name: Create start
-  lxc_container:
-    name: "{{ inventory_hostname }}"
-    state: started
-  delegate_to: "{{ physical_host }}"
-
-- name: Drop container network file (interfaces)
-  template:
-    src: "{{ lxc_container_interface }}"
-    dest: "{{ lxc_container_interface_target }}"
-    owner: "root"
-    group: "root"
-    mode: "0644"
-  with_dict: "{{ container_networks | default({}) }}"
-
-- name: Drop container network file (routes)
-  template:
-    src: "{{ lxc_container_route_interface }}"
-    dest: "{{ lxc_container_default_route_interfaces }}"
-    owner: "root"
-    group: "root"
-    mode: "0644"
-  when:
-    - lxc_container_route_interface is defined
-    - lxc_container_default_route_interfaces is defined
-    - item.value.static_routes is defined or
-      (item.value.gateway is defined and ansible_pkg_mgr == "zypper")
-  with_dict: "{{ container_networks | default({}) }}"
-
-- name: Drop container setup script
-  template:
-    src: "container-setup.sh.j2"
-    dest: "/opt/container-setup.sh"
-    owner: "root"
-    group: "root"
-    mode: "0755"
-
-- name: Run container setup script
-  command: /opt/container-setup.sh
-  register: container_setup
-  changed_when: false
-  failed_when: container_setup.rc != 0
-
-# NOTE(major): the lxc.network.veth.pair line must appear *immediately* after
-# the lxc.network.name congfiguration line or it will be ignored.  That's why
-# you'll find a "insertafter" in this YAML block.
-- name: Add veth pair name to match container name
-  lineinfile:
-    dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
-    line: "lxc.network.veth.pair = {{ lxc_container_network_veth_pair_prefix }}_eth0"
-    insertafter: "^lxc.network.name"
-    backup: "true"
+  with_dict: "{{ lxc_container_networks_combined }}"
+  register: network_config
   delegate_to: "{{ physical_host }}"
 
 - name: Container network includes
@@ -169,33 +149,18 @@
     dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
     line: "lxc.include = /var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}.ini"
     backup: "true"
-  with_dict: "{{ container_networks | default({}) }}"
+  with_dict: "{{ lxc_container_networks_combined }}"
   when: item.value.interface is defined
+  register: network_includes
   delegate_to: "{{ physical_host }}"
 
 - name: Create wiring script
   copy:
     src: "lxc-veth-wiring.sh"
-    dest: "/usr/local/bin/lxc-veth-wiring"
+    dest: "/var/lib/lxc/{{ inventory_hostname }}/lxc-veth-wiring.sh"
     owner: "root"
     group: "root"
     mode: "0755"
-  delegate_to: "{{ physical_host }}"
-
-- name: Run container veth wiring script
-  command: >
-    /usr/local/bin/lxc-veth-wiring
-    "{{ inventory_hostname }}"
-    "{{ lxc_container_network_veth_pair[-15:] }}"
-    "{{ item.value.interface }}"
-    "{{ item.value.bridge }}"
-  register: wiring_script
-  with_dict: "{{ container_networks | default({}) }}"
-  when:
-    - item.value.interface is defined
-    - item.value.type is not defined or item.value.type == 'veth'
-  failed_when: wiring_script.rc not in [3, 0]
-  changed_when: wiring_script.rc == 3
   delegate_to: "{{ physical_host }}"
 
 # Adds post-down and pre-start hooks
@@ -209,9 +174,6 @@
   delegate_to: "{{ physical_host }}"
 
 # This is being defined due to an issue with dangling veth pairs.
-#  TODO(someone) This should be removed once an upstream patch has
-#  been submitted to either the kernel or LXC to fix the veth issues.
-#  Container restart is not happening here because it's not needed.
 - name: Defines a pre and post hook script
   lineinfile:
     dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
@@ -222,16 +184,38 @@
     - "lxc.hook.post-stop = /var/lib/lxc/{{ inventory_hostname }}/veth-cleanup.sh"
   delegate_to: "{{ physical_host }}"
 
-# Flush the handlers to ensure the container and networking is online.
-- meta: flush_handlers
+- name: Run veth wiring
+  set_fact:
+    lxc_container_veth_wiring: true
+  when:
+    - ((not lxc_container_veth_wiring | bool) and
+       ((network_config | changed) and (network_includes | changed))) and
+      not ((default_configuration_container | changed) or
+           (bind_configuration_container | changed) or
+           (machine_id | changed))
 
-- name: Wait for container connectivity
-  wait_for_connection:
-    connect_timeout: "{{ lxc_container_wait_params.connect_timeout | default(omit) }}"
-    delay: "{{ lxc_container_wait_params.delay | default(omit) }}"
-    sleep: "{{ lxc_container_wait_params.sleep | default(omit) }}"
-    timeout: "{{ lxc_container_wait_params.timeout | default(omit) }}"
+- name: Run container veth wiring script
+  command: >-
+    /var/lib/lxc/{{ inventory_hostname }}/lxc-veth-wiring.sh
+    "{{ inventory_hostname }}"
+    "{{ lxc_container_network_veth_pair[-15:] }}"
+    "{{ item.value.interface }}"
+    "{{ item.value.bridge }}"
+  register: wiring_script
+  with_dict: "{{ lxc_container_networks_combined }}"
+  when:
+    - lxc_container_veth_wiring | bool
+    - item.value.interface is defined
+    - item.value.type is not defined or item.value.type == 'veth'
+  failed_when: wiring_script.rc not in [3, 0]
+  changed_when: wiring_script.rc == 3
+  delegate_to: "{{ physical_host }}"
 
+- include: "lxc_container_network_new.yml"
+# VETH AND CONNECTIVITY SETTINGS
+
+
+# ENVIRONMENT AND HOSTNAME SETTINGS
 - name: Add global_environment_variables to environment file
   blockinfile:
     dest: "/etc/environment"
@@ -275,6 +259,64 @@
   changed_when: false
   remote_user: root
 
+- name: Ensure the hostnamed override directory exists
+  file:
+    path: "/etc/systemd/system/systemd-hostnamed.service.d"
+    state: "directory"
+
+- name: Create hostnamed override
+  template:
+    src: "systemd-hostnamed.conf"
+    dest: "/etc/systemd/system/systemd-hostnamed.service.d/hostnamed.conf"
+  notify:
+    - Enable hostnamed
+
+- name: Generate machine-id
+  command: "systemd-machine-id-setup"
+  args:
+    creates: "/etc/machine-id"
+  register: machine_id
+  notify:
+    - Lxc container restart
+
+- name: Ensure the dbus directory exists
+  file:
+    path: "/var/lib/dbus"
+    state: "directory"
+
+- name: Create dbus machine-id
+  copy:
+    src: "/etc/machine-id"
+    dest: "/var/lib/dbus/machine-id"
+    mode: "0444"
+    remote_src: "yes"
+  remote_user: root
+# ENVIRONMENT AND HOSTNAME SETTINGS
+
+
+# POST UP/DOWN SERVICES AND KERNEL SETTINGS
+- name: Create post-up-down onshot service
+  template:
+    src: "post-up-down.oneshot.j2"
+    dest: "/etc/systemd/system/post-up-down-{{ item.value.interface }}.service"
+    mode: "0644"
+    owner: "root"
+    group: "root"
+  with_dict: "{{ lxc_container_networks_combined }}"
+  notify:
+    - Reload systemd daemon
+
+- name: Create pre-up-down onshot service
+  template:
+    src: "pre-up-down.oneshot.j2"
+    dest: "/etc/systemd/system/post-up-down-{{ item.value.interface }}.service"
+    mode: "0644"
+    owner: "root"
+    group: "root"
+  with_dict: "{{ lxc_container_networks_combined }}"
+  notify:
+    - Reload systemd daemon
+
 - name: Ensure sysctl can be applied
   template:
     src: "sysctl-container.init.j2"
@@ -283,26 +325,12 @@
     owner: "root"
     group: "root"
   remote_user: root
+  notify:
+    - Enable container sysctl service
+# POST UP/DOWN SERVICES AND KERNEL SETTINGS
 
-# NOTE(hwoarang) openSUSE randomly fails to start the service
-# with an error like the following one
-# sysctl-container.service: Failed at step CGROUP spawning /sbin/sysctl: No such device
-# Until this is fixed, we workaround it by simply retrying a few more times
-# before giving up
-# https://bugzilla.suse.com/show_bug.cgi?id=1055426
-# https://bugs.launchpad.net/openstack-ansible/+bug/1712741
-- name: Enable container sysctl service
-  service:
-    name: "sysctl-container"
-    state: started
-    enabled: yes
-    daemon_reload: yes
-  remote_user: root
-  register: _sysctl_service_started
-  until: _sysctl_service_started|success
-  retries: 5
-  delay: 5
 
+# SET CONTAINER FACTS
 - name: Allow the usage of local facts
   file:
     path: /etc/ansible/facts.d/
@@ -318,3 +346,4 @@
     value: "{{ properties['lxc_container_variant'] | default(lxc_container_variant) }}"
   tags:
     - always
+# SET CONTAINER FACTS

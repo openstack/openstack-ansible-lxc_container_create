@@ -13,21 +13,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Note this is a used in an iterable and requires the <item.value.interface> variable
-#   The container interface variable is a a default object that assume the
-#   Ansible iterator type is `with_dict`.
-lxc_container_interface: debian-interface.cfg.j2
-
-# Note this is a used in an iterable and requires the <item.value.interface> variable
+# NOTE(cloudnull): These variables have been kept to ensure
+#                  we're cleaning up the old interface files.
+#                  Remote this in the "R" release.
+lxc_container_default_route_interfaces: "/etc/network/interfaces.d/{{ item.value.interface }}.cfg"
 lxc_container_interface_target: "/etc/network/interfaces.d/{{ item.value.interface }}.cfg"
+lxc_container_default_interface: "/etc/network/interfaces.d/lxc-net-bridge.cfg"
 
 lxc_container_map:
   distro: ubuntu
   arch: "{{ lxc_architecture_mapping.get( hostvars[physical_host]['ansible_architecture'] | lower ) }}"
   release: xenial
 
-lxc_container_default_postup:
-  # needed to enable gratuitous arps on interface events
-  - "sysctl -w net.ipv4.conf.$IFACE.arp_notify=1"
-  # needed to force an interface event (setting mac to what it already is)
-  - "ip link set $IFACE address $(cat /sys/class/net/$IFACE/address)"
+### REMOVE IN "S"
+# DBUS is not guarenteeded to be part of the base image. This installs the
+# requirement. Once DBUS is a built in dependency remove this.
+# systemd-resolved is not setup in the base image, once we can ensure that all
+# deployments have this service setup the systemd-resolved lines can be removed.
+_lxc_container_extra_commands: |
+  apt-get update
+  apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" --force-yes dbus
+  for action in disable mask; do
+    systemctl ${action} resolvconf.service || true
+    systemctl ${action} systemd-networkd-resolvconf-update.path || true
+    systemctl ${action} systemd-networkd-resolvconf-update.service || true
+  done

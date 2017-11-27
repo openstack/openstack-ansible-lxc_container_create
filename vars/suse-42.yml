@@ -24,7 +24,32 @@ lxc_container_default_route_interfaces: "/etc/sysconfig/network/ifroute-{{ item.
 # Note this is a used in an iterable and requires the <item.value.interface> variable
 lxc_container_interface_target: "/etc/sysconfig/network/ifcfg-{{ item.value.interface }}"
 
+lxc_container_enable_resolved: false
+
 lxc_container_map:
   distro: opensuse
   arch: amd64
   release: "{{ hostvars[physical_host]['ansible_distribution_version'] }}"
+
+### REMOVE IN "S"
+# The machine-id is not removed in the base container. Remove the machine-id
+# command when the base container no longer has a stored id.
+# The wicked* need to be disabled. Once this is taken care of in the base image
+# this set of commands can be removed.
+_lxc_container_extra_commands: |
+  if [[ ! -f /etc/machine-id.generated ]]; then
+    rm /etc/machine-id || true
+    rm /var/lib/dbus/machine-id || true
+    /usr/bin/systemd-machine-id-setup
+    cp /etc/machine-id /var/lib/dbus/machine-id
+    touch /etc/machine-id.generated
+  fi
+  for action in disable mask; do
+    systemctl ${action} wicked.service || true
+    systemctl ${action} wickedd.service || true
+    systemctl ${action} wickedd-auto4.service || true
+    systemctl ${action} wickedd-dhcp4.service || true
+    systemctl ${action} wickedd-dhcp6.service || true
+    systemctl ${action} wickedd-nanny.service || true
+  done
+  systemctl enable systemd-networkd

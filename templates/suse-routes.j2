@@ -1,7 +1,0 @@
-{% if item.value.gateway is defined %}
-default {{ item.value.gateway }}
-{%- endif %}
-{% for route in item.value.static_routes %}
-{{ route['cidr'] }} {{ route['gateway'] }}
-{% endfor %}
-

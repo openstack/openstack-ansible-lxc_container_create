@@ -49,7 +49,7 @@
 # this uses the LXC CLI tools to ensure that we get logging.
 # TODO(odyssey4me): revisit this once the bug is fixed and released
 - name: Start the container if it is not already running
-  command: >
+  command: >-
     lxc-start
     --daemon
     --name {{ inventory_hostname }}
@@ -62,23 +62,3 @@
   delay: 5
   when:
     - _lxc_container_state.stdout.find('STOPPED') != -1
-
-- name: Generate machine-id
-  command: "systemd-machine-id-setup"
-  args:
-    creates: "/etc/machine-id"
-  notify:
-    - Lxc container restart
-
-- name: Ensure the dbus directory exists
-  file:
-    path: "/var/lib/dbus"
-    state: "directory"
-
-- name: Create dbus machine-id
-  copy:
-    src: "/etc/machine-id"
-    dest: "/var/lib/dbus/machine-id"
-    mode: "0444"
-    remote_src: "yes"
-  remote_user: root

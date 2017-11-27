@@ -12,12 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-set -ev
+set -e
 
 # Execution example: lxc-veth-wiring.sh testing VETHTEST eth1 br-mgmt
 
 # CLI variables
 CONTAINER_NAME="${1}"
+export CPID=$(lxc-info -Hpn ${CONTAINER_NAME});
 VETH="${2}"
 INTERFACE="${3}"
 BRIDGE="${4}"
@@ -29,13 +30,20 @@ PID="$(lxc-info -pHn ${CONTAINER_NAME})"
 # Exit 0 means no change, exit 3 is changed, any other exit is fail.
 EXIT_CODE=0
 
+function ns_cmd {
+  nsenter --mount=/proc/$CPID/ns/mnt \
+          --net=/proc/$CPID/ns/net \
+          --pid=/proc/$CPID/ns/pid \
+          --uts=/proc/$CPID/ns/uts \
+          --ipc=/proc/$CPID/ns/ipc -- $@
+}
+
 if ! ip a l "${VETH}";then
   ip link add name "${VETH}" type veth peer name "${VETH_PEER}"
-  ip link set dev "${VETH}" up
-  EXIT=3
-else
-  ip link set dev "${VETH}" up
+  EXIT_CODE=3
 fi
+
+ip link set dev "${VETH}" up
 
 if ip a l "${VETH_PEER}";then
   ip link set dev "${VETH_PEER}" up
@@ -45,13 +53,10 @@ fi
 
 if ! brctl show "${BRIDGE}" | grep -q "${VETH}"; then
   brctl addif "${BRIDGE}" "${VETH}"
-  EXIT=3
+  EXIT_CODE=3
 fi
 
-lxc-attach --name "${CONTAINER_NAME}" <<EOC
-  ip link set dev "${INTERFACE}" up
-  ifdown "${INTERFACE}"
-  ifup "${INTERFACE}"
-EOC
+ns_cmd ip link set dev "${INTERFACE}" down || true
+ns_cmd systemctl restart systemd-networkd
 
-exit ${EXIT}
+exit ${EXIT_CODE}

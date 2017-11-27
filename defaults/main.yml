@@ -37,6 +37,7 @@ lxc_container_default_config_list:
   - "lxc.hook.autodev=/var/lib/lxc/{{ inventory_hostname }}/autodev"
 lxc_container_config_list: []
 lxc_container_commands: ""
+lxc_container_extra_commands: "{{ _lxc_container_extra_commands | default('echo noop') }}"
 
 # A list of bind mounts to configure for the container, for example:
 # lxc_container_bind_mounts:
@@ -89,9 +90,8 @@ lxc_container_backing_store: dir
 # using the directory backing.
 lxc_container_vg_name: lxc
 
-# Scripts allowing the configuration of pre/post-up/down scripts in Ubuntu
-# interface files. These are merged with per-interface scripts defined in the
-# container_networks dict
+# Scripts allowing the configuration of pre/post-up/down scripts.
+# These are run as one shot services before or after networking is available.
 lxc_container_default_preup: []
 lxc_container_default_postup: []
 lxc_container_default_predown: []
@@ -147,8 +147,21 @@ lxc_container_allow_restarts: yes
 lxc_container_network_veth_pair_prefix: "{{ inventory_hostname[-8:].replace('-', '').replace('_', '') }}"
 lxc_container_network_veth_pair: "{{ lxc_container_network_veth_pair_prefix }}_{{ item.value.interface }}"
 
+# A default set of container networks used within the LXC containers.
+lxc_container_networks:
+  lxcbr0_address:
+    bridge: lxcbr0
+    interface: eth0
+    type: veth
+
 # Enable fixed mac address generation for an lxc container
 lxc_container_fixed_mac: false
 
 # Enable destroying then recreating containers
 lxc_container_recreate: false
+
+# Enable running the veth wiring script
+lxc_container_veth_wiring: false
+
+# Enable systemd-resolved
+lxc_container_enable_resolved: true

@@ -16,7 +16,7 @@
 # Due to https://github.com/ansible/ansible-modules-extras/issues/2691
 # this uses the LXC CLI tools to ensure that we get logging.
 # TODO(odyssey4me): revisit this once the bug is fixed and released
-- name: Lxc container restart
+- name: Stop Container
   command: >
     lxc-stop --name {{ inventory_hostname }}
     --logfile {{ lxc_container_log_path }}/lxc-{{ inventory_hostname }}.log
@@ -32,6 +32,7 @@
   delay: 2
   when:
     - lxc_container_allow_restarts | bool
+  listen: Lxc container restart
 
 # Due to https://github.com/ansible/ansible-modules-extras/issues/2691
 # this uses the LXC CLI tools to ensure that we get logging.
@@ -45,3 +46,62 @@
   register: container_start
   until: container_start | success
   retries: 3
+  listen: Lxc container restart
+
+- name: Flush routes
+  command: "ip route flush table main"
+  listen: Restart networkd
+
+- name: Restart systemd-networkd
+  systemd:
+    name: systemd-networkd
+    state: restarted
+    enabled: true
+    daemon_reload: true
+  listen: Restart networkd
+
+- name: Enable resolved
+  systemd:
+    name: systemd-resolved
+    state: started
+    enabled: true
+    daemon_reload: true
+  when:
+    - lxc_container_enable_resolved | bool
+
+- name: Enable hostnamed
+  systemd:
+    name: systemd-hostnamed
+    state: started
+    enabled: true
+    daemon_reload: true
+
+- name: Enable dbus
+  systemd:
+    name: dbus
+    state: started
+    enabled: true
+    daemon_reload: true
+
+- name: Reload systemd daemon
+  systemd:
+    daemon_reload: true
+
+# NOTE(hwoarang) openSUSE randomly fails to start the service
+# with an error like the following one
+# sysctl-container.service: Failed at step CGROUP spawning /sbin/sysctl: No such device
+# Until this is fixed, we workaround it by simply retrying a few more times
+# before giving up
+# https://bugzilla.suse.com/show_bug.cgi?id=1055426
+# https://bugs.launchpad.net/openstack-ansible/+bug/1712741
+- name: Enable container sysctl service
+  service:
+    name: "sysctl-container"
+    state: started
+    enabled: yes
+    daemon_reload: yes
+  remote_user: root
+  register: _sysctl_service_started
+  until: _sysctl_service_started|success
+  retries: 5
+  delay: 5

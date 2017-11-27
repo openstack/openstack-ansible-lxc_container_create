@@ -11,3 +11,6 @@ mkdir -p "{{ item['container_directory'] }}"
 
 {%   endif %}
 {% endfor %}
+
+# Run extra commands
+{{ lxc_container_extra_commands }}
