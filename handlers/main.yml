@@ -25,9 +25,13 @@
     - Start Container
   delegate_to: "{{ physical_host }}"
   register: container_stop
-  until: container_stop | success
+  changed_when: true
+  failed_when: not container_stop.rc in [0, 2]
+  until: container_stop.rc in [0, 2]
   retries: 3
-  when: lxc_container_allow_restarts | bool
+  delay: 2
+  when:
+    - lxc_container_allow_restarts | bool
 
 # Due to https://github.com/ansible/ansible-modules-extras/issues/2691
 # this uses the LXC CLI tools to ensure that we get logging.

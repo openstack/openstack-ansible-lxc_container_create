@@ -134,11 +134,20 @@
   tasks:
     - name: Stop container
       command: "lxc-stop -n container3"
-      changed_when: false
+      register: container_stop
+      changed_when: container_stop.rc == 0
+      failed_when: not container_stop.rc in [0, 2]
+      until: container_stop.rc in [0, 2]
+      retries: 3
+      delay: 2
 
     - name: Start container
       command: "lxc-start -d -n container3"
-      changed_when: false
+      register: container_start
+      changed_when: container_start.rc == 0
+      until: container_start | success
+      retries: 3
+      delay: 2
 
 - name: Check if the sysctl was well applied
   hosts: container3
