@@ -25,6 +25,9 @@
         - openstack-ansible-machinectl-ubuntu-xenial
         - openstack-ansible-overlayfs-ubuntu-xenial
         - openstack-ansible-zfs-ubuntu-xenial
+    experimental:
+      jobs:
+        - openstack-ansible-integrated-deploy-aio
     gate:
       jobs:
         - openstack-ansible-linters
