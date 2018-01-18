@@ -44,7 +44,7 @@
         - skip_ansible_lint
 
     - name: Check for the presence of the right aa_profile for container2
-      command: grep "^lxc.aa_profile = unconfined$" /var/lib/lxc/container2/config
+      command: "grep -E '^lxc.aa_profile = {{ (lxc_container_backing_store == 'overlayfs') | ternary('lxc-openstack', 'unconfined') }}$' /var/lib/lxc/container2/config"
       register: container2_profile
       failed_when: container2_profile.rc != 0
       tags:
