@@ -40,7 +40,8 @@ install_pkg_deps() {
 
     case ${ID,,} in
         *suse*) pkg_mgr_cmd="zypper -n in" ;;
-        centos|rhel|fedora) pkg_mgr_cmd="${RHT_PKG_MGR} install -y" ;;
+        centos|rhel) pkg_mgr_cmd="${RHT_PKG_MGR} install -y" ;;
+        fedora) pkg_mgr_cmd="dnf -y install" ;;
         ubuntu|debian) pkg_mgr_cmd="apt-get install -y" ;;
         *) echo "unsupported distribution: ${ID,,}"; exit 1 ;;
     esac
