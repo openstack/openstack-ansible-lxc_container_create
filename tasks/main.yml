@@ -78,18 +78,18 @@
   tags:
     - always
 
-- include: lxc_container_destroy.yml
+- include_tasks: lxc_container_destroy.yml
   when:
     - physical_host != inventory_hostname
     - lxc_container_recreate | bool
 
-- include: lxc_container_create.yml
+- include_tasks: lxc_container_create.yml
   when:
     - physical_host != inventory_hostname
   tags:
     - lxc-create
 
-- include: lxc_container_config.yml
+- include_tasks: lxc_container_config.yml
   when:
     - physical_host != inventory_hostname
   tags:

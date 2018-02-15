@@ -31,6 +31,6 @@
     - lxc_container_backing_store == 'lvm'
     - lxc_container_backing_method != 'copy-on-write'
 
-- include: lxc_container_create_cow.yml
+- include_tasks: lxc_container_create_cow.yml
   when:
     - lxc_container_backing_method == 'copy-on-write'
