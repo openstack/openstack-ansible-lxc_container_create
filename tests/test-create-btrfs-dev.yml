@@ -22,7 +22,7 @@
     - block:
       - name: Install BTRFS packages
         package:
-          name: "{{ btrfs_package[ansible_distribution | lower] }}"
+          name: "{{ btrfs_package[ansible_pkg_mgr | lower] }}"
           state: present
 
       - name: Create base directories
@@ -55,6 +55,6 @@
         - lxc_container_backing_store == 'btrfs'
   vars:
     btrfs_package:
-      ubuntu: "btrfs-tools"
-      redhat: "btrfs-progs"
-      suse: "btrfsprogs"
+      apt: "btrfs-tools"
+      yum: "btrfs-progs"
+      zypper: "btrfsprogs"
