@@ -43,6 +43,22 @@
       tox_env: btrfs
 
 - job:
+    name: openstack-ansible-btrfs-opensuse-423
+    parent: openstack-ansible-functional
+    nodeset: opensuse-423
+    voting: false
+    vars:
+      tox_env: btrfs
+
+- job:
+    name: openstack-ansible-btrfs-centos-7
+    parent: openstack-ansible-functional
+    nodeset: centos-7
+    voting: false
+    vars:
+      tox_env: btrfs
+
+- job:
     name: openstack-ansible-machinectl-ubuntu-xenial
     parent: openstack-ansible-functional
     nodeset: ubuntu-xenial
@@ -51,9 +67,41 @@
       tox_env: mnctl
 
 - job:
+    name: openstack-ansible-machinectl-opensuse-423
+    parent: openstack-ansible-functional
+    nodeset: opensuse-423
+    voting: false
+    vars:
+      tox_env: mnctl
+
+- job:
+    name: openstack-ansible-machinectl-centos-7
+    parent: openstack-ansible-functional
+    nodeset: centos-7
+    voting: false
+    vars:
+      tox_env: mnctl
+
+- job:
     name: openstack-ansible-overlayfs-ubuntu-xenial
     parent: openstack-ansible-functional
     nodeset: ubuntu-xenial
+    voting: false
+    vars:
+      tox_env: ofs
+
+- job:
+    name: openstack-ansible-overlayfs-opensuse-423
+    parent: openstack-ansible-functional
+    nodeset: opensuse-423
+    voting: false
+    vars:
+      tox_env: ofs
+
+- job:
+    name: openstack-ansible-overlayfs-centos-7
+    parent: openstack-ansible-functional
+    nodeset: centos-7
     voting: false
     vars:
       tox_env: ofs
