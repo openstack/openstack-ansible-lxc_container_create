@@ -16,6 +16,7 @@ RouteMetric=20
 [Route]
 Source={{ route['cidr'] }}
 Gateway={{ route['gateway'] }}
+Metric={{ 20 + loop.index }}
 
 {% endfor %}
 
