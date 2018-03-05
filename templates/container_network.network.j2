@@ -7,7 +7,7 @@ Name={{ item.value.interface }}
 Address={{ item.value.address }}/{{ addr_cidr }}
 {% else %}
 [DHCP]
-UseDNS=yes
+UseDNS={{ (lxc_container_enable_resolved | bool) | ternary('yes', 'no') }}
 UseNTP=yes
 RouteMetric=20
 {% endif %}
