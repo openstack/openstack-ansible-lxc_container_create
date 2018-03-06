@@ -48,8 +48,11 @@
   retries: 3
   listen: Lxc container restart
 
-- name: Flush routes
-  command: "ip route flush table main"
+- name: Flush addresses
+  command: "ip addr flush {{ item.value.interface }}"
+  with_dict: "{{ lxc_container_networks_combined }}"
+  when:
+    - item.value.interface is defined
   listen: Restart networkd
 
 - name: Restart systemd-networkd
