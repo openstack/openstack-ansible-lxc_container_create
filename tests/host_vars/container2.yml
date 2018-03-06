@@ -5,6 +5,3 @@ ansible_user: root
 lxc_container_config_list:
   # The unconfined profile is causing problems with overlayfs. See https://bugs.launchpad.net/openstack-ansible/+bug/1612412
   - "lxc.aa_profile={{ (lxc_container_backing_store == 'overlayfs') | ternary('lxc-openstack', 'unconfined') }}"
-
-# TEST FOR FIXED MAC ADDRESS
-lxc_container_fixed_mac: true

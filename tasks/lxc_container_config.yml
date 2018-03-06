@@ -102,8 +102,6 @@
     mode: "0755"
   delegate_to: "{{ physical_host }}"
   with_dict: "{{ lxc_container_networks_combined }}"
-  when:
-    - lxc_container_fixed_mac | bool
 
 - name: Set define static mac address from an existing interface
   command: "/openstack/{{ inventory_hostname }}/{{ item.value.interface }}_mac_generation.sh"
@@ -111,8 +109,6 @@
     creates: "/var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}.hwaddr"
   delegate_to: "{{ physical_host }}"
   with_dict: "{{ lxc_container_networks_combined }}"
-  when:
-    - lxc_container_fixed_mac | bool
 
 - name: Gather hardware addresses to be used as facts
   slurp:
@@ -121,8 +117,6 @@
   register: macs
   with_dict: "{{ lxc_container_networks_combined }}"
   delegate_to: "{{ physical_host }}"
-  when:
-    - lxc_container_fixed_mac | bool
 
 # NOTE(cloudnull): To dynamically set the the mac address "facts" Ansible line
 #                  format is being used
@@ -130,8 +124,6 @@
   set_fact: "{{item.item.value.interface }}_mac_address={{ item.content | b64decode }}"
   with_items:
     - "{{ macs.results }}"
-  when:
-    - lxc_container_fixed_mac | bool
 
 - name: LXC host config for container networks
   template:
