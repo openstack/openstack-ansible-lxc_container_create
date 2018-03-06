@@ -105,7 +105,7 @@
           - "'foo=bar' in environment_content"
 
     - name: Test connectivity to external address
-      command: ping -i 5 -c 6 8.8.8.8
+      command: ping -i 5 -c 6 git.openstack.org
       register: ping_external_address
       failed_when: false
       tags:
