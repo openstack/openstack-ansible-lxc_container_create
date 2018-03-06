@@ -6,17 +6,18 @@ auto {{ item.value.interface }}
 iface {{ item.value.interface }} inet static
     address {{ item.value.address }}
     netmask {{ item.value.netmask }}
-{% if item.value.gateway is defined %}
+{%   if item.value.gateway is defined %}
     gateway {{ item.value.gateway }}
-{% endif %}
+{%   endif %}
     mtu {{ item.value.mtu|default(lxc_container_default_mtu) }}
-{% if item.value.static_routes is defined %}
-{% for route in item.value.static_routes %}
+{%   if item.value.static_routes is defined %}
+{%     for route in item.value.static_routes %}
     post-up ip route add {{ route['cidr'] }} via {{ route['gateway'] }} || true
-{% endfor %}
-{% endif %}
+{%     endfor %}
+{%   endif %}
 {% else %}
 iface {{ item.value.interface }} inet manual
+    mtu {{ item.value.mtu|default(lxc_container_default_mtu) }}
 {% endif %}
 {% for item in item.value.preup | default([]) | union(lxc_container_default_preup) %}
     pre-up {{ item }}
