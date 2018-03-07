@@ -154,9 +154,6 @@ lxc_container_networks:
     interface: eth0
     type: veth
 
-# Enable fixed mac address generation for an lxc container
-lxc_container_fixed_mac: false
-
 # Enable destroying then recreating containers
 lxc_container_recreate: false
 
