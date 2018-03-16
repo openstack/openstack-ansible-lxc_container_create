@@ -72,13 +72,6 @@
   when:
     - lxc_container_enable_resolved | bool
 
-- name: Enable hostnamed
-  systemd:
-    name: systemd-hostnamed
-    state: started
-    enabled: true
-    daemon_reload: true
-
 - name: Enable dbus
   systemd:
     name: dbus
@@ -89,6 +82,19 @@
 - name: Reload systemd daemon
   systemd:
     daemon_reload: true
+
+- name: Start hostnamed
+  systemd:
+    name: systemd-hostnamed
+    state: started
+    enabled: true
+    daemon_reload: true
+  listen: Enable hostnamed
+
+- name: Set hostnamectl name
+  command: "/usr/bin/hostnamectl --static --pretty --transient set-hostname {{ inventory_hostname | replace('_', '-') | quote }}"
+  changed_when: false
+  listen: Enable hostnamed
 
 # NOTE(hwoarang) openSUSE randomly fails to start the service
 # with an error like the following one

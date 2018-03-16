@@ -237,20 +237,6 @@
     mode: "0644"
   remote_user: root
 
-- name: Create hostname
-  copy:
-    dest: "/etc/hostname"
-    content: "{{ inventory_hostname | replace('_', '-') }}"
-    owner: "root"
-    group: "root"
-    mode: "0644"
-  remote_user: root
-
-- name: Setup hostname
-  command: hostname -F /etc/hostname
-  changed_when: false
-  remote_user: root
-
 - name: Ensure the hostnamed override directory exists
   file:
     path: "/etc/systemd/system/systemd-hostnamed.service.d"
