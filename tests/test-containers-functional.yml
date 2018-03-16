@@ -164,3 +164,27 @@
       assert:
         that:
           - "'1' in nonlocalbind.stdout"
+
+- name: Test journal linking
+  hosts: all_containers
+  user: root
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Get container machine-id
+      command: "cat /etc/machine-id"
+      changed_when: false
+      register: container_machine_id
+
+    - name: Stat linked journal on the host
+      stat:
+        path: "/var/log/journal/{{ container_machine_id.stdout.strip() }}/system.journal"
+      register: journal_stat
+      delegate_to: "{{ physical_host }}"
+
+    - name: Check for linked journal
+      fail:
+        msg: >-
+          Container journal [/var/log/journal/{{ container_machine_id.stdout.strip() }}] not found
+      when:
+        - not journal_stat.stat.exists

@@ -165,3 +165,9 @@ lxc_container_enable_resolved: true
 
 # Dictionary of settings for containers
 properties: {}
+
+# Set "/var/log/journal/{{ machine_id }}" to be a bind mount to the physical
+# host. This option will link the container journal and the physical host
+# journals making it possible to log stream from the container on the physical
+# host.
+lxc_container_journal_link: true
