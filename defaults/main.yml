@@ -162,3 +162,6 @@ lxc_container_veth_wiring: false
 
 # Enable systemd-resolved
 lxc_container_enable_resolved: true
+
+# Dictionary of settings for containers
+properties: {}
