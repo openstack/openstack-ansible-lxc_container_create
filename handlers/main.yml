@@ -51,6 +51,7 @@
 - name: Flush addresses
   command: "ip addr flush {{ item.value.interface }}"
   with_dict: "{{ lxc_container_networks_combined }}"
+  failed_when: false
   when:
     - item.value.interface is defined
   listen: Restart networkd

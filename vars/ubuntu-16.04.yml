@@ -18,7 +18,7 @@
 #                  Remote this in the "R" release.
 lxc_container_default_route_interfaces: "/etc/network/interfaces.d/{{ item.value.interface }}.cfg"
 lxc_container_interface_target: "/etc/network/interfaces.d/{{ item.value.interface }}.cfg"
-lxc_container_default_interface: "/etc/network/interfaces.d/lxc-net-bridge.cfg"
+lxc_container_default_interface: "/etc/network/interfaces"
 
 lxc_container_map:
   distro: ubuntu

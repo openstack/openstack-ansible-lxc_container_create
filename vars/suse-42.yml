@@ -20,6 +20,7 @@
 lxc_container_interface: suse-interface.j2
 lxc_container_route_interface: suse-routes.j2
 lxc_container_default_route_interfaces: "/etc/sysconfig/network/ifroute-{{ item.value.interface }}"
+lxc_container_default_interface: "/etc/sysconfig/network/ifcfg-eth0"
 
 # Note this is a used in an iterable and requires the <item.value.interface> variable
 lxc_container_interface_target: "/etc/sysconfig/network/ifcfg-{{ item.value.interface }}"
