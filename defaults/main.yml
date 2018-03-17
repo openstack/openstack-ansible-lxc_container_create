@@ -152,3 +152,6 @@ lxc_container_fixed_mac: false
 
 # Enable destroying then recreating containers
 lxc_container_recreate: false
+
+# Dictionary of settings for containers
+properties: {}
