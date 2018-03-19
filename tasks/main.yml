@@ -29,6 +29,14 @@
   tags:
     - always
 
+- name: Collect physical host facts if missing
+  action:
+    module: setup
+  delegate_to: "{{ physical_host }}"
+  delegate_facts: yes
+  when:
+    - hostvars[physical_host]['ansible_kernel'] is not defined
+
 - name: Kernel version and LXC backing store check
   debug:
     msg: "Using overlayfs is not recommended when using Kernel version < 3.18"
