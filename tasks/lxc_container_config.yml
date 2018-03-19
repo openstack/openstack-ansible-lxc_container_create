@@ -173,8 +173,7 @@
     mode: "0755"
   delegate_to: "{{ physical_host }}"
 
-# This is being defined due to an issue with dangling veth pairs.
-- name: Defines a pre and post hook script
+- name: Defines a pre, post, and haltsignal configs
   lineinfile:
     dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
     line: "{{ item }}"
@@ -182,6 +181,7 @@
   with_items:
     - "lxc.hook.pre-start = /var/lib/lxc/{{ inventory_hostname }}/veth-cleanup.sh"
     - "lxc.hook.post-stop = /var/lib/lxc/{{ inventory_hostname }}/veth-cleanup.sh"
+    - "lxc.haltsignal = SIGRTMIN+4"
   delegate_to: "{{ physical_host }}"
 
 - name: Run veth wiring
