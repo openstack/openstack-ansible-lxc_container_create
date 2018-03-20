@@ -30,7 +30,7 @@ lxc_container_enable_resolved: false
 lxc_container_map:
   distro: opensuse
   arch: amd64
-  release: "{{ hostvars[physical_host]['ansible_distribution_version'] }}"
+  release: "42.3"
 
 ### REMOVE IN "S"
 # The machine-id is not removed in the base container. Remove the machine-id
