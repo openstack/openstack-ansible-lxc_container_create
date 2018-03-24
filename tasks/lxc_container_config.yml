@@ -277,6 +277,38 @@
     mode: "0444"
     remote_src: "yes"
   remote_user: root
+
+- name: Link container journal to host
+  block:
+    - name: Retrieve the machine-id
+      slurp:
+        src: /etc/machine-id
+      register: machine_id
+
+    - name: Set bind mount for journal linking
+      set_fact:
+        lxc_container_journal_path: "/var/log/journal/{{ (machine_id.content | b64decode).strip() }}"
+
+    - name: Ensure journal directory exists
+      file:
+        path: "{{ lxc_container_journal_path }}"
+        state: "directory"
+        group: "systemd-journal"
+        owner: "root"
+        mode: "02755"
+      delegate_to: "{{ item }}"
+      with_items:
+        - "{{ physical_host }}"
+        - "{{ inventory_hostname }}"
+
+    - name: Add bind mount configuration to container
+      lineinfile:
+        dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
+        line: "lxc.mount.entry = {{ lxc_container_journal_path }} {{ lxc_container_journal_path.lstrip('/') }} none bind,create=dir 0 0"
+        backup: "true"
+      delegate_to: "{{ physical_host }}"
+  when:
+    - lxc_container_journal_link | bool
 # ENVIRONMENT AND HOSTNAME SETTINGS
 
 
