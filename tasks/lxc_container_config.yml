@@ -191,8 +191,7 @@
     - ((not lxc_container_veth_wiring | bool) and
        ((network_config | changed) and (network_includes | changed))) and
       not ((default_configuration_container | changed) or
-           (bind_configuration_container | changed) or
-           (machine_id | changed))
+           (bind_configuration_container | changed))
 
 - name: Run container veth wiring script
   command: >-
