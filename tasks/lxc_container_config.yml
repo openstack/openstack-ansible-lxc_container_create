@@ -133,14 +133,16 @@
   with_items:
     - "{{ macs.results }}"
 
+# NOTE(andymccr): We need an index for the interfaces in LXC >= 3 converting
+#                 to a list and using with_indexed_items for this purpose.
 - name: LXC host config for container networks
   template:
     src: "container-interface.ini.j2"
-    dest: "/var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}.ini"
+    dest: "/var/lib/lxc/{{ inventory_hostname }}/{{ item.1.interface }}.ini"
     owner: "root"
     group: "root"
     mode: "0644"
-  with_dict: "{{ lxc_container_networks_combined }}"
+  with_indexed_items: "{{ lxc_container_networks_combined.values() | list }}"
   register: network_config
   delegate_to: "{{ physical_host }}"
 
@@ -181,7 +183,7 @@
   with_items:
     - "lxc.hook.pre-start = /var/lib/lxc/{{ inventory_hostname }}/veth-cleanup.sh"
     - "lxc.hook.post-stop = /var/lib/lxc/{{ inventory_hostname }}/veth-cleanup.sh"
-    - "lxc.haltsignal = SIGRTMIN+4"
+    - "{{ (hostvars[physical_host | default('localhost')]['ansible_distribution_version'] == '18.04') | ternary ('lxc.signal.halt', 'lxc.haltsignal') }} = SIGRTMIN+4"
   delegate_to: "{{ physical_host }}"
 
 - name: Run veth wiring

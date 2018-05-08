@@ -1,20 +1,22 @@
 # {{ ansible_managed }}
+{### For lxc > 3.0 use lxc.net.[i] otherwise use lxc.network #}
+{% set _lxc_net_var = (lxc_three_syntax | bool) | ternary ('lxc.net.' + ((item.0 | default(0)) | string),'lxc.network') %}
 
-# Create a veth pair within the container
-lxc.network.type = {{ item.value.type|default('veth') }}
+# Create a veth pair within the contaihostvars[physical_host | default('localhost')]['ansible_distribution_version'] == '18.04'ner
+{{ _lxc_net_var }}.type = {{ item.1.type|default('veth') }}
 # Network device within the container
-lxc.network.name = {{ item.value.interface }}
-{% if item.value.type is not defined or item.value.type == 'veth' %}
+{{ _lxc_net_var }}.name = {{ item.1.interface }}
+{% if item.1.type is not defined or item.1.type == 'veth' %}
 # Name the veth after the container
 # NOTE(major): The lxc.network.veth.pair line must appear right after
 # lxc.network.name or it will be ignored.
-lxc.network.veth.pair = {{ lxc_container_network_veth_pair[-15:] }}
+{{ _lxc_net_var }}.veth.pair = {{ lxc_container_network_veth_pair_indexed[-15:] }}
 {% endif %}
 # Host link to attach to, this should be a bridge if lxc.network.type = veth
-lxc.network.link = {{ item.value.bridge }}
+{{ _lxc_net_var }}.link = {{ item.1.bridge }}
 # Hardware Address
-lxc.network.hwaddr = {{ hostvars[inventory_hostname][item.value.interface + '_mac_address'] }}
+{{ _lxc_net_var }}.hwaddr = {{ hostvars[inventory_hostname][item.1.interface + '_mac_address'] }}
 # enable the device on boot
-lxc.network.flags = up
+{{ _lxc_net_var }}.flags = up
 # Set the container network MTU
-lxc.network.mtu = {{ item.value.mtu|default(lxc_container_default_mtu) }}
+{{ _lxc_net_var }}.mtu = {{ item.1.mtu|default(lxc_container_default_mtu) }}

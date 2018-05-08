@@ -26,15 +26,6 @@ lxc_container_wait_params:
 
 
 lxc_container_config: /etc/lxc/lxc-openstack.conf
-lxc_container_default_config_list:
-  - "lxc.start.auto=1"
-  - "lxc.start.delay=15"
-  - "lxc.group=onboot"
-  - "lxc.group=openstack"
-  - "lxc.autodev=1"
-  - "lxc.pts=1024"
-  - "lxc.kmsg=0"
-  - "lxc.hook.autodev=/var/lib/lxc/{{ inventory_hostname }}/autodev"
 lxc_container_config_list: []
 lxc_container_commands: ""
 lxc_container_extra_commands: "{{ _lxc_container_extra_commands | default('echo noop') }}"
@@ -146,6 +137,9 @@ lxc_container_allow_restarts: yes
 
 lxc_container_network_veth_pair_prefix: "{{ inventory_hostname[-8:].replace('-', '').replace('_', '') }}"
 lxc_container_network_veth_pair: "{{ lxc_container_network_veth_pair_prefix }}_{{ item.value.interface }}"
+# In order to use "with_indexed_items" we need a specific var to reference item.1.interface
+# This is for the container-interface.ini.j2 template only.
+lxc_container_network_veth_pair_indexed: "{{ lxc_container_network_veth_pair_prefix }}_{{ item.1.interface }}"
 
 # A default set of container networks used within the LXC containers.
 lxc_container_networks:
