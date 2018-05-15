@@ -103,3 +103,10 @@
     - physical_host != inventory_hostname
   tags:
     - lxc-config
+
+- name: Force all notified handlers now
+  meta: flush_handlers
+
+- name: (RE)Gather facts post setup
+  setup:
+    gather_subset: "network,hardware,virtual"
