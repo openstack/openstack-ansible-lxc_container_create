@@ -27,3 +27,22 @@
     state: started
     template_options: "{{ lxc_container_machinectl_template_options }}"
   delegate_to: "{{ physical_host }}"
+
+- name: Set the qgroup limits
+  block:
+    - name: Set the qgroup size|compression limits on machines
+      command: "btrfs qgroup limit {{ item }} /var/lib/machines/{{ inventory_hostname }}"
+      changed_when: false
+      delegate_to: "{{ physical_host }}"
+      with_items:
+        - "-e {{ lxc_host_machine_qgroup_space_limit }}"
+        - "-c {{ lxc_host_machine_qgroup_compression_limit }}"
+      when:
+        - not lxc_host_machine_quota_disabled
+  rescue:
+    - name: Notice regarding quota system
+      debug:
+        msg: >-
+          There was an error processing the setup of qgroups. Check the system
+          to ensure they're available otherwise disable the quota system by
+          setting `lxc_host_machine_quota_disabled` to true.
