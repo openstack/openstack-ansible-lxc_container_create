@@ -21,6 +21,13 @@
       tox_env: dir
 
 - job:
+    name: openstack-ansible-dir-ubuntu-bionic
+    parent: openstack-ansible-functional
+    nodeset: ubuntu-bionic
+    vars:
+      tox_env: dir
+
+- job:
     name: openstack-ansible-dir-centos-7
     parent: openstack-ansible-functional
     nodeset: centos-7

@@ -36,22 +36,22 @@
           - lxc_container_list.stdout | search("container2\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3},\s+)*10.100.100.3(,\s+\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})*\s+")
           - lxc_container_list.stdout | search("container3\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3},\s+)*10.100.100.4(,\s+\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})*\s+")
 
-    - name: Check for the presence of the right aa_profile for container1
-      command: grep "^lxc.aa_profile = lxc-openstack$" /var/lib/lxc/container1/config
+    - name: Check for the presence of the right app armor profile for container1
+      command: grep "^{{ (hostvars[physical_host | default('localhost')]['ansible_distribution_version'] == '18.04') | ternary('lxc.apparmor.profile', 'lxc.aa_profile') }} = lxc-openstack$" /var/lib/lxc/container1/config
       register: container1_profile
       failed_when: container1_profile.rc != 0
       tags:
         - skip_ansible_lint
 
-    - name: Check for the presence of the right aa_profile for container2
-      command: "grep -E '^lxc.aa_profile = {{ (lxc_container_backing_store == 'overlayfs') | ternary('lxc-openstack', 'unconfined') }}$' /var/lib/lxc/container2/config"
+    - name: Check for the presence of the right app armor profile for container2
+      command: "grep -E '^{{ (hostvars[physical_host | default('localhost')]['ansible_distribution_version'] == '18.04') | ternary('lxc.apparmor.profile', 'lxc.aa_profile') }} = {{ (lxc_container_backing_store == 'overlayfs') | ternary('lxc-openstack', 'unconfined') }}$' /var/lib/lxc/container2/config"
       register: container2_profile
       failed_when: container2_profile.rc != 0
       tags:
         - skip_ansible_lint
 
     - name: Check for the lack of presence of an aa_profile for container3
-      command: grep "lxc.aa_profile" /var/lib/lxc/container3/config
+      command: grep "{{ (hostvars[physical_host | default('localhost')]['ansible_distribution_version'] == '18.04') | ternary('lxc.apparmor.profile', 'lxc.aa_profile') }}" /var/lib/lxc/container3/config
       register: container3_profile
       failed_when: container3_profile.rc == 0
       tags:

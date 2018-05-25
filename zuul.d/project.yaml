@@ -16,9 +16,10 @@
     check:
       jobs:
         - openstack-ansible-linters
-        - openstack-ansible-dir-ubuntu-xenial
         - openstack-ansible-dir-centos-7
         - openstack-ansible-dir-opensuse-423
+        - openstack-ansible-dir-ubuntu-bionic
+        - openstack-ansible-dir-ubuntu-xenial
         - openstack-ansible-btrfs-ubuntu-xenial
         - openstack-ansible-btrfs-centos-7
         - openstack-ansible-btrfs-opensuse-423
@@ -35,6 +36,7 @@
     gate:
       jobs:
         - openstack-ansible-linters
-        - openstack-ansible-dir-ubuntu-xenial
         - openstack-ansible-dir-centos-7
         - openstack-ansible-dir-opensuse-423
+        - openstack-ansible-dir-ubuntu-bionic
+        - openstack-ansible-dir-ubuntu-xenial

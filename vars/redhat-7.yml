@@ -25,6 +25,16 @@ lxc_container_map:
   arch: amd64
   release: 7
 
+lxc_container_default_config_list:
+  - "lxc.start.auto=1"
+  - "lxc.start.delay=15"
+  - "lxc.group=onboot"
+  - "lxc.group=openstack"
+  - "lxc.autodev=1"
+  - "lxc.pts=1024"
+  - "lxc.kmsg=0"
+  - "lxc.hook.autodev=/var/lib/lxc/{{ inventory_hostname }}/autodev"
+
 ### REMOVE IN "S"
 # The networkd commands are executed within the container but using the host
 # network namespace. Remove this once systemd-networkd is part of the base
