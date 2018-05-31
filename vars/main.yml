@@ -14,6 +14,7 @@
 # limitations under the License.
 
 # A set of container networks used within the LXC containers. This information
-# is sourced from the assumed "container_networks" and "lxc_container_networks"
-# variables and combined into a single immutable hash.
-lxc_container_networks_combined: "{{ container_networks | default({}) | combine(lxc_container_networks) }}"
+# is sourced from the assumed "container_networks", "container_extra_networks"
+# and "lxc_container_networks" variables and combined into a single
+# immutable hash.
+lxc_container_networks_combined: "{{ container_networks | default({}) | combine(container_extra_networks | default({})) | combine(lxc_container_networks) }}"
