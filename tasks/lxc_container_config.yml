@@ -37,7 +37,6 @@
   file:
     path: "{{ item['host_directory'] }}"
     state: "directory"
-    recurse: true
   with_items: "{{ lxc_container_default_bind_mounts | union(lxc_container_bind_mounts) }}"
   delegate_to: "{{ physical_host }}"
 
