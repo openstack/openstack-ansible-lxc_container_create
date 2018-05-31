@@ -142,7 +142,7 @@
     owner: "root"
     group: "root"
     mode: "0644"
-  with_indexed_items: "{{ lxc_container_networks_combined.values() | list | sort }}"
+  with_indexed_items: "{{ (lxc_container_networks_combined.values() | list) | sort(attribute='interface') }}"
   register: network_config
   delegate_to: "{{ physical_host }}"
 
