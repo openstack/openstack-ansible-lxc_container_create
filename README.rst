@@ -14,5 +14,8 @@ OpenStack-Ansible LXC container create
 Documentation for the project can be found at:
   https://docs.openstack.org/openstack-ansible-lxc_container_create/latest/
 
+Release notes for the project can be found at:
+  https://docs.openstack.org/releasenotes/openstack-ansible-lxc_container_create/
+
 The project home is at:
   https://launchpad.net/openstack-ansible
