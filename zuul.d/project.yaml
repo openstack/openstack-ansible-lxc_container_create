@@ -13,9 +13,10 @@
 # limitations under the License.
 
 - project:
+    templates:
+      - openstack-ansible-role-jobs
     check:
       jobs:
-        - openstack-ansible-linters
         - openstack-ansible-dir-centos-7
         - openstack-ansible-dir-opensuse-423
         - openstack-ansible-dir-ubuntu-bionic
@@ -30,12 +31,8 @@
         - openstack-ansible-overlayfs-centos-7
         - openstack-ansible-overlayfs-opensuse-423
         - openstack-ansible-zfs-ubuntu-xenial
-    experimental:
-      jobs:
-        - openstack-ansible-integrated-deploy-aio
     gate:
       jobs:
-        - openstack-ansible-linters
         - openstack-ansible-dir-centos-7
         - openstack-ansible-dir-opensuse-423
         - openstack-ansible-dir-ubuntu-bionic
