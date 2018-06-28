@@ -30,7 +30,7 @@ lxc_container_enable_resolved: false
 lxc_container_map:
   distro: opensuse
   arch: amd64
-  release: "42.3"
+  release: "{{ hostvars[physical_host]['ansible_distribution_version'] }}"
 
 lxc_container_default_config_list:
   - "lxc.start.auto=1"
