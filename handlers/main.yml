@@ -44,7 +44,7 @@
     --logpriority {{ (debug | bool) | ternary('DEBUG', 'INFO') }}
   delegate_to: "{{ physical_host }}"
   register: container_start
-  until: container_start | success
+  until: container_start  is success
   retries: 3
   listen: Lxc container restart
 
@@ -112,6 +112,6 @@
     daemon_reload: yes
   remote_user: root
   register: _sysctl_service_started
-  until: _sysctl_service_started|success
+  until: _sysctl_service_started is success
   retries: 5
   delay: 5

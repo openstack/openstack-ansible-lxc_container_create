@@ -43,7 +43,7 @@
         filesystem:
           fstype: btrfs
           dev: /openstack/lxc-btrfs.img
-        when: lxc_btrfs_create | changed
+        when: lxc_btrfs_create  is changed
 
       - name: Create the mount points, fstab entries and mount the file systems
         mount:

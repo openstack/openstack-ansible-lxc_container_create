@@ -94,7 +94,7 @@
   args:
     creates: "/var/lib/lxc/{{ inventory_hostname }}/setup.complete"
   register: container_extra_commands
-  until: container_extra_commands | success
+  until: container_extra_commands  is success
   retries: 5
   delay: 2
   delegate_to: "{{ physical_host }}"

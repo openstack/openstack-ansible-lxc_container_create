@@ -145,7 +145,7 @@
       command: "lxc-start -d -n container3"
       register: container_start
       changed_when: container_start.rc == 0
-      until: container_start | success
+      until: container_start  is success
       retries: 3
       delay: 2
 
