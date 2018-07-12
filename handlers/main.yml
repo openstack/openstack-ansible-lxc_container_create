@@ -44,7 +44,7 @@
     --logpriority {{ (debug | bool) | ternary('DEBUG', 'INFO') }}
   delegate_to: "{{ physical_host }}"
   register: container_start
-  until: container_start  is success
+  until: container_start is success
   retries: 3
   listen: Lxc container restart
 
