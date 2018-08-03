@@ -41,7 +41,6 @@ lxc_container_default_config_list:
 # image.
 _lxc_container_extra_commands: |
   which dnf &>/dev/null && RHT_PKG_MGR='dnf' || RHT_PKG_MGR='yum'
-  timeout 90 $RHT_PKG_MGR check-update
   echo "update" > /tmp/package-transaction.txt
   echo "install systemd-networkd systemd-resolved" >> /tmp/package-transaction.txt
   echo "run" >> /tmp/package-transaction.txt
