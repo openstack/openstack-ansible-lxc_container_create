@@ -151,3 +151,11 @@
     voting: false
     vars:
       tox_env: zfs
+
+- job:
+    name: openstack-ansible-zfs-ubuntu-bionic
+    parent: openstack-ansible-functional
+    nodeset: ubuntu-bionic
+    voting: false
+    vars:
+      tox_env: zfs

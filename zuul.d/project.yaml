@@ -35,6 +35,7 @@
         - openstack-ansible-overlayfs-opensuse-423
         - openstack-ansible-overlayfs-opensuse-150
         - openstack-ansible-zfs-ubuntu-xenial
+        - openstack-ansible-zfs-ubuntu-bionic
     gate:
       jobs:
         - openstack-ansible-dir-centos-7
