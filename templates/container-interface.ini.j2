@@ -2,7 +2,7 @@
 {### For lxc > 3.0 use lxc.net.[i] otherwise use lxc.network #}
 {% set _lxc_net_var = (lxc_three_syntax | bool) | ternary ('lxc.net.' + ((item.0 | default(0)) | string),'lxc.network') %}
 
-# Create a veth pair within the contaihostvars[physical_host | default('localhost')]['ansible_distribution_version'] == '18.04'ner
+# Set the interface's type for the container
 {{ _lxc_net_var }}.type = {{ item.1.type|default('veth') }}
 # Network device within the container
 {{ _lxc_net_var }}.name = {{ item.1.interface }}
@@ -14,8 +14,10 @@
 {% endif %}
 # Host link to attach to, this should be a bridge if lxc.network.type = veth
 {{ _lxc_net_var }}.link = {{ item.1.bridge }}
+{% if item.1.type is not defined or item.1.type != 'phys' %}
 # Hardware Address
 {{ _lxc_net_var }}.hwaddr = {{ hostvars[inventory_hostname][item.1.interface + '_mac_address'] }}
+{% endif %}
 # enable the device on boot
 {{ _lxc_net_var }}.flags = up
 # Set the container network MTU
