@@ -41,7 +41,7 @@
   changed_when: false
   delegate_to: "{{ physical_host }}"
   register: _lxc_container_state
-  until: _lxc_container_state  is success
+  until: _lxc_container_state is success
   retries: 3
   delay: 5
 
@@ -57,7 +57,7 @@
     --logpriority {{ (debug | bool) | ternary('DEBUG', 'INFO') }}
   delegate_to: "{{ physical_host }}"
   register: _lxc_container_create
-  until: _lxc_container_create  is success
+  until: _lxc_container_create is success
   retries: 3
   delay: 5
   when:
