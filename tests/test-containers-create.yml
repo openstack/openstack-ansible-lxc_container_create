@@ -18,9 +18,9 @@
   become: true
   gather_facts: true
   tasks:
-    - include: "common/common-tasks/test-set-nodepool-vars.yml"
+    - include_tasks: "common/common-tasks/test-set-nodepool-vars.yml"
 
-- include: "common/destroy_containers.yml"
+- import_playbook: "common/destroy_containers.yml"
   when: destroy_first | default(True) | bool
 
 - name: Playbook for creating containers

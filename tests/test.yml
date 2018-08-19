@@ -14,19 +14,19 @@
 # limitations under the License.
 
 # Create a zfs backend
-- include: test-create-zfs-dev.yml
+- import_playbook: test-create-zfs-dev.yml
 
 # Create a btrfs backend
-- include: test-create-btrfs-dev.yml
+- import_playbook: test-create-btrfs-dev.yml
 
 # Prepare the user ssh keys
-- include: common/test-prepare-keys.yml
+- import_playbook: common/test-prepare-keys.yml
 
 # Prepare the host
-- include: common/test-prepare-host.yml
+- import_playbook: common/test-prepare-host.yml
 
 # Create the containers
-- include: test-containers-create.yml
+- import_playbook: test-containers-create.yml
 
 # Test container creation
-- include: test-containers-functional.yml
+- import_playbook: test-containers-functional.yml
