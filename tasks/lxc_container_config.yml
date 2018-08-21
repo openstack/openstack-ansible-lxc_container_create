@@ -125,7 +125,7 @@
   with_dict: "{{ lxc_container_networks_combined }}"
   delegate_to: "{{ physical_host }}"
 
-# NOTE(cloudnull): To dynamically set the the mac address "facts" Ansible line
+# NOTE(cloudnull): To dynamically set the mac address "facts" Ansible line
 #                  format is being used
 - name: Set fixed hardware address fact
   set_fact: "{{item.item.value.interface }}_mac_address={{ item.content | b64decode }}"
