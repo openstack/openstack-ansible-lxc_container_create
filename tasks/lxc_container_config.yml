@@ -211,7 +211,7 @@
   changed_when: wiring_script.rc == 3
   delegate_to: "{{ physical_host }}"
 
-- include: "lxc_container_network_new.yml"
+- include_tasks: "lxc_container_network_new.yml"
 # VETH AND CONNECTIVITY SETTINGS
 
 
