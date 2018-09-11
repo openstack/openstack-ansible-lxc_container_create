@@ -25,6 +25,14 @@ lxc_container_wait_params:
   timeout: 60
 
 
+## A list of 'legacy' lxc configuration keys and their corresponding new
+## keys. Use this map to substitute keys suitable for other/newer lxc versions
+lxc_config_key_mapping:
+  3:
+    lxc.aa_profile: lxc.apparmor.profile
+    lxc.haltsignal: lxc.signal.halt
+  2:
+
 lxc_container_config: /etc/lxc/lxc-openstack.conf
 lxc_container_config_list: []
 lxc_container_commands: ""
