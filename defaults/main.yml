@@ -31,6 +31,7 @@ lxc_config_key_mapping:
   3:
     lxc.aa_profile: lxc.apparmor.profile
     lxc.haltsignal: lxc.signal.halt
+    lxc.utsname: lxc.uts.name
   2:
 
 lxc_container_config: /etc/lxc/lxc-openstack.conf
