@@ -29,6 +29,7 @@
   lineinfile:
     dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
     line: "lxc.mount.auto = proc:rw sys:ro cgroup:ro"
+    regexp: "^lxc.mount.auto = proc:rw sys:ro cgroup:ro$"
     insertafter: "^lxc.mount.auto"
     backup: "true"
   delegate_to: "{{ physical_host }}"
