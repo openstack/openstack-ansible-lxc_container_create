@@ -60,6 +60,7 @@ lxc_architecture_mapping:
   ppc64le: ppc64el
   s390x: s390x
   armv7l: armhf
+  aarch64: arm64
 
 # lxc container rootfs directory and cache path
 lxc_container_directory: "/var/lib/lxc"
