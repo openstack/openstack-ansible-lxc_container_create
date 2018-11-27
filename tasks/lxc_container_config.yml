@@ -52,17 +52,6 @@
   notify:
     - Lxc container restart
 
-### REMOVE IN "S"
-# NOTE(cloudnull): These tasks are cleaning up the old interfaces
-#                  files. Remove this in the "S" release.
-- name: Remove legacy network config for eth0
-  lineinfile:
-    dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
-    regexp: "^lxc.network.*"
-    backup: "true"
-    state: "absent"
-  delegate_to: "{{ physical_host }}"
-
 - name: Create and start the container
   lxc_container:
     name: "{{ inventory_hostname }}"
