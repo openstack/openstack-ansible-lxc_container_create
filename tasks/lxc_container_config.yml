@@ -191,9 +191,9 @@
     lxc_container_veth_wiring: true
   when:
     - ((not lxc_container_veth_wiring | bool) and
-       ((network_config | changed) and (network_includes | changed))) and
-      not ((default_configuration_container | changed) or
-           (bind_configuration_container | changed))
+       ((network_config is changed) and (network_includes is changed))) and
+      not ((default_configuration_container is changed) or
+           (bind_configuration_container is changed))
 
 - name: Run container veth wiring script
   command: >-
