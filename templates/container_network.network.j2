@@ -10,6 +10,10 @@ Address={{ item.value.address }}/{{ addr_cidr }}
 UseDNS={{ (lxc_container_enable_resolved | bool) | ternary('yes', 'no') }}
 UseNTP=yes
 RouteMetric=20
+{% if hostvars[inventory_hostname]['gateway'] is defined %}
+UseRoutes=False
+{% endif %}
+
 {% endif %}
 
 {% for route in item.value.static_routes | default([]) %}
