@@ -10,7 +10,7 @@ Before=sysinit.target shutdown.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/sbin/sysctl -p
+ExecStart={{ sysctl_path }}/sysctl -p
 TimeoutSec=90s
 
 [Install]

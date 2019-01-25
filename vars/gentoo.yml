@@ -1,0 +1,46 @@
+---
+# Copyright 2018, Matthew Thode
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# TODO: COnfigure with networkd or the other system.
+# These seem to be unused placeholder items
+lxc_container_default_route_interfaces: "/etc/network/interfaces.d/{{ item.value.interface }}.cfg"
+lxc_container_interface_target: "/etc/network/interfaces.d/{{ item.value.interface }}.cfg"
+lxc_container_default_interface: "/etc/network/interfaces"
+
+# no official systemd image is published, but machinectl seems to work
+lxc_container_backing_store: machinectl
+
+lxc_container_map:
+  distro: gentoo
+  arch: "{{ lxc_architecture_mapping.get( hostvars[physical_host]['ansible_architecture'] | lower ) }}"
+  release: 17.0-systemd
+
+lxc_container_default_config_list:
+  - "lxc.start.auto=1"
+  - "lxc.start.delay=15"
+  - "lxc.group=onboot"
+  - "lxc.group=openstack"
+  - "lxc.autodev=1"
+  - "lxc.pty.max=1024"
+  - "lxc.hook.autodev=/var/lib/lxc/{{ inventory_hostname }}/autodev"
+
+sysctl_path: "/usr/sbin"
+
+# shared binpkgs and distfiles
+_lxc_container_bind_mounts:
+  - host_directory: "/openstack/portage/packages"
+    container_directory: "/usr/portage/packages"
+  - host_directory: "/openstack/portage/distfiles"
+    container_directory: "/usr/portage/distfiles"

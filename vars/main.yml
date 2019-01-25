@@ -18,3 +18,5 @@
 # and "lxc_container_networks" variables and combined into a single
 # immutable hash.
 lxc_container_networks_combined: "{{ container_networks | default({}) | combine(container_extra_networks | default({})) | combine(lxc_container_networks) }}"
+sysctl_path: "/sbin"
+_lxc_container_bind_mounts: []
