@@ -14,13 +14,6 @@
 # limitations under the License.
 
 - job:
-    name: openstack-ansible-dir-ubuntu-xenial
-    parent: openstack-ansible-functional
-    nodeset: ubuntu-xenial
-    vars:
-      tox_env: dir
-
-- job:
     name: openstack-ansible-dir-ubuntu-bionic
     parent: openstack-ansible-functional
     nodeset: ubuntu-bionic
@@ -42,14 +35,6 @@
       tox_env: dir
 
 - job:
-    name: openstack-ansible-btrfs-ubuntu-xenial
-    parent: openstack-ansible-functional
-    nodeset: ubuntu-xenial
-    voting: false
-    vars:
-      tox_env: btrfs
-
-- job:
     name: openstack-ansible-btrfs-opensuse-150
     parent: openstack-ansible-functional
     nodeset: opensuse-150
@@ -64,14 +49,6 @@
     voting: false
     vars:
       tox_env: btrfs
-
-- job:
-    name: openstack-ansible-machinectl-ubuntu-xenial
-    parent: openstack-ansible-functional
-    nodeset: ubuntu-xenial
-    voting: false
-    vars:
-      tox_env: mnctl
 
 - job:
     name: openstack-ansible-machinectl-opensuse-150
@@ -90,14 +67,6 @@
       tox_env: mnctl
 
 - job:
-    name: openstack-ansible-overlayfs-ubuntu-xenial
-    parent: openstack-ansible-functional
-    nodeset: ubuntu-xenial
-    voting: false
-    vars:
-      tox_env: ofs
-
-- job:
     name: openstack-ansible-overlayfs-opensuse-150
     parent: openstack-ansible-functional
     nodeset: opensuse-150
@@ -112,14 +81,6 @@
     voting: false
     vars:
       tox_env: ofs
-
-- job:
-    name: openstack-ansible-zfs-ubuntu-xenial
-    parent: openstack-ansible-functional
-    nodeset: ubuntu-xenial
-    voting: false
-    vars:
-      tox_env: zfs
 
 - job:
     name: openstack-ansible-zfs-ubuntu-bionic
