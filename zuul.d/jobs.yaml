@@ -38,6 +38,7 @@
     name: openstack-ansible-dir-opensuse-423
     parent: openstack-ansible-functional
     nodeset: opensuse-423
+    voting: false
     vars:
       tox_env: dir
 
@@ -45,6 +46,7 @@
     name: openstack-ansible-dir-opensuse-150
     parent: openstack-ansible-functional
     nodeset: opensuse-150
+    voting: false
     vars:
       tox_env: dir
 
