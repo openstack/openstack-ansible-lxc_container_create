@@ -22,23 +22,18 @@
     check:
       jobs:
         - openstack-ansible-dir-centos-7
-        - openstack-ansible-dir-opensuse-423:
-            voting: false
         - openstack-ansible-dir-opensuse-150:
             voting: false
         - openstack-ansible-dir-ubuntu-bionic
         - openstack-ansible-dir-ubuntu-xenial
         - openstack-ansible-btrfs-ubuntu-xenial
         - openstack-ansible-btrfs-centos-7
-        - openstack-ansible-btrfs-opensuse-423
         - openstack-ansible-btrfs-opensuse-150
         - openstack-ansible-machinectl-ubuntu-xenial
         - openstack-ansible-machinectl-centos-7
-        - openstack-ansible-machinectl-opensuse-423
         - openstack-ansible-machinectl-opensuse-150
         - openstack-ansible-overlayfs-ubuntu-xenial
         - openstack-ansible-overlayfs-centos-7
-        - openstack-ansible-overlayfs-opensuse-423
         - openstack-ansible-overlayfs-opensuse-150
         - openstack-ansible-zfs-ubuntu-xenial
         - openstack-ansible-zfs-ubuntu-bionic
