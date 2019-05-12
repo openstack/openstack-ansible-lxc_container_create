@@ -172,8 +172,7 @@ lxc_container_enable_resolved: true
 # files by simply inputting the file name
 # "{{ ansible_distribution }}-{{ ansible_distribution_version }}-container.yml"
 # or by providing the full path to a local file containing all of the variables
-# needed to prepare a container. built-in supported values are:
-#   [redhat-7.yml, suse-42.yml, ubuntu-16.04.yml]
+# needed to prepare a container.
 lxc_user_defined_container: null
 
 # Dictionary of settings for containers
