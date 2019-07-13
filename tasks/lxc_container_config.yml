@@ -225,16 +225,6 @@
     mode: "0644"
   remote_user: root
 
-- name: Create domain config
-  lineinfile:
-    dest: "/etc/hosts"
-    regexp: "^127.0.1.1"
-    line: "127.0.1.1 {{ inventory_hostname | replace('_', '-') }}.{{ lxc_container_domain }} {{ inventory_hostname | replace('_', '-') }}"
-    owner: "root"
-    group: "root"
-    mode: "0644"
-  remote_user: root
-
 - name: Ensure the hostnamed override directory exists
   file:
     path: "/etc/systemd/system/systemd-hostnamed.service.d"
