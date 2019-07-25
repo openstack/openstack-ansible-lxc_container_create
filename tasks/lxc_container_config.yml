@@ -303,7 +303,7 @@
 
 
 # POST UP/DOWN SERVICES AND KERNEL SETTINGS
-- name: Create post-up-down onshot service
+- name: Create post-up-down oneshot service
   template:
     src: "post-up-down.oneshot.j2"
     dest: "/etc/systemd/system/post-up-down-{{ item.value.interface }}.service"
@@ -314,10 +314,10 @@
   notify:
     - Reload systemd daemon
 
-- name: Create pre-up-down onshot service
+- name: Create pre-up-down oneshot service
   template:
     src: "pre-up-down.oneshot.j2"
-    dest: "/etc/systemd/system/post-up-down-{{ item.value.interface }}.service"
+    dest: "/etc/systemd/system/pre-up-down-{{ item.value.interface }}.service"
     mode: "0644"
     owner: "root"
     group: "root"
