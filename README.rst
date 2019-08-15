@@ -18,7 +18,7 @@ Release notes for the project can be found at:
   https://docs.openstack.org/releasenotes/openstack-ansible-lxc_container_create/
 
 The project source code repository is located at:
-  https://git.openstack.org/cgit/openstack/openstack/openstack-ansible-lxc_container_create/
+  https://opendev.org/openstack/openstack/openstack-ansible-lxc_container_create/
 
 The project bug tracker is located at:
   https://bugs.launchpad.net/openstack-ansible
