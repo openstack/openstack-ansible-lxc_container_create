@@ -28,13 +28,6 @@
       tox_env: dir
 
 - job:
-    name: openstack-ansible-dir-opensuse-423
-    parent: openstack-ansible-functional
-    nodeset: opensuse-423
-    vars:
-      tox_env: dir
-
-- job:
     name: openstack-ansible-btrfs-ubuntu-xenial
     parent: openstack-ansible-functional
     nodeset: ubuntu-xenial

@@ -22,7 +22,6 @@
         - openstack-ansible-linters
         - openstack-ansible-dir-ubuntu-xenial
         - openstack-ansible-dir-centos-7
-        - openstack-ansible-dir-opensuse-423
         - openstack-ansible-btrfs-ubuntu-xenial
         - openstack-ansible-machinectl-ubuntu-xenial
         - openstack-ansible-overlayfs-ubuntu-xenial
@@ -32,4 +31,3 @@
         - openstack-ansible-linters
         - openstack-ansible-dir-ubuntu-xenial
         - openstack-ansible-dir-centos-7
-        - openstack-ansible-dir-opensuse-423
