@@ -28,21 +28,6 @@
       tox_env: dir
 
 - job:
-    name: openstack-ansible-dir-opensuse-150
-    parent: openstack-ansible-functional
-    nodeset: opensuse-150
-    vars:
-      tox_env: dir
-
-- job:
-    name: openstack-ansible-btrfs-opensuse-150
-    parent: openstack-ansible-functional
-    nodeset: opensuse-150
-    voting: false
-    vars:
-      tox_env: btrfs
-
-- job:
     name: openstack-ansible-btrfs-centos-7
     parent: openstack-ansible-functional
     nodeset: centos-7
@@ -51,28 +36,12 @@
       tox_env: btrfs
 
 - job:
-    name: openstack-ansible-machinectl-opensuse-150
-    parent: openstack-ansible-functional
-    nodeset: opensuse-150
-    voting: false
-    vars:
-      tox_env: mnctl
-
-- job:
     name: openstack-ansible-machinectl-centos-7
     parent: openstack-ansible-functional
     nodeset: centos-7
     voting: false
     vars:
       tox_env: mnctl
-
-- job:
-    name: openstack-ansible-overlayfs-opensuse-150
-    parent: openstack-ansible-functional
-    nodeset: opensuse-150
-    voting: false
-    vars:
-      tox_env: ofs
 
 - job:
     name: openstack-ansible-overlayfs-centos-7
