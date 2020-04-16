@@ -3,11 +3,3 @@ ansible_host: 10.100.100.2
 ansible_become: True
 ansible_user: root
 container_name: container1
-lxc_container_config_list:
-  - "{{ (hostvars[physical_host | default('localhost')]['ansible_distribution_version'] == '18.04') | ternary('lxc.apparmor.profile', 'lxc.aa_profile') }}=lxc-openstack"
-  - "lxc.mount.entry=/openstack/{{ inventory_hostname }} opt/test1 none bind,create=dir 0 0"
-
-lxc_container_commands: |
-  if [[ ! -d "/opt/test1" ]]; then
-    mkdir -p "/opt/test1"
-  fi
