@@ -55,7 +55,7 @@
     msg: "Using overlayfs is not recommended when using Kernel version < 3.18"
   when:
     - lxc_container_backing_store == "overlayfs"
-    - hostvars[physical_host]['ansible_kernel'] | version('3.18.0-0-generic', '<')
+    - hostvars[physical_host]['ansible_kernel'] is version('3.18.0-0-generic', '<')
   tags:
     - always
 
