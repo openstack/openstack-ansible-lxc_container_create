@@ -28,6 +28,10 @@ lxc_container_wait_params:
 ## A list of 'legacy' lxc configuration keys and their corresponding new
 ## keys. Use this map to substitute keys suitable for other/newer lxc versions
 lxc_config_key_mapping:
+  4:
+    lxc.aa_profile: lxc.apparmor.profile
+    lxc.haltsignal: lxc.signal.halt
+    lxc.utsname: lxc.uts.name
   3:
     lxc.aa_profile: lxc.apparmor.profile
     lxc.haltsignal: lxc.signal.halt
