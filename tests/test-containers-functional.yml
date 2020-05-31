@@ -150,7 +150,16 @@
 
 - name: Check if the sysctl was well applied
   hosts: container3
+  gather_facts: false
   tasks:
+    - name: Wait for container tmpfiles-setup finish
+      raw: systemctl status systemd-tmpfiles-setup.service | grep Process | grep 'code=exited' >/dev/null
+      register: systemd_tmpfiles
+      until: systemd_tmpfiles.rc == 0
+      retries: 20
+      delay: 2
+      changed_when: false
+
     - name: Check the sysctl is persistent
       command: sysctl -n net.ipv4.ip_nonlocal_bind
       register: nonlocalbind
