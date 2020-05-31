@@ -48,6 +48,15 @@
   retries: 3
   listen: Lxc container restart
 
+- name: Wait for container tmpfiles-setup finish
+  raw: systemctl status systemd-tmpfiles-setup.service | grep Process | grep 'code=exited' >/dev/null
+  register: systemd_tmpfiles
+  until: systemd_tmpfiles.rc == 0
+  retries: 20
+  delay: 2
+  changed_when: false
+  listen: Lxc container restart
+
 - name: Flush addresses
   command: "ip addr flush {{ item.value.interface }}"
   with_dict: "{{ lxc_container_networks_combined }}"
