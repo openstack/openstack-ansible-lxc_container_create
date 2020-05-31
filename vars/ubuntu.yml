@@ -21,7 +21,7 @@ lxc_container_default_interface: "/etc/network/interfaces"
 lxc_container_map:
   distro: ubuntu
   arch: "{{ lxc_architecture_mapping.get( hostvars[physical_host]['ansible_architecture'] | lower ) }}"
-  release: bionic
+  release: "{{ hostvars[physical_host].ansible_distribution_release }}"
 
 lxc_container_default_config_list:
   - "lxc.start.auto=1"
