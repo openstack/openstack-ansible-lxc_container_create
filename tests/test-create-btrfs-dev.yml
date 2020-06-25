@@ -55,6 +55,6 @@
         - lxc_container_backing_store == 'btrfs'
   vars:
     btrfs_package:
-      apt: "btrfs-tools"
+      apt: "btrfs-progs"
       yum: "btrfs-progs"
       zypper: "btrfsprogs"
