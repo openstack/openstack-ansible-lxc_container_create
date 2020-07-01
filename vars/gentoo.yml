@@ -13,12 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO: COnfigure with networkd or the other system.
-# These seem to be unused placeholder items
-lxc_container_default_route_interfaces: "/etc/network/interfaces.d/{{ item.value.interface }}.cfg"
-lxc_container_interface_target: "/etc/network/interfaces.d/{{ item.value.interface }}.cfg"
-lxc_container_default_interface: "/etc/network/interfaces"
-
 # no official systemd image is published, but machinectl seems to work
 lxc_container_backing_store: machinectl
 
