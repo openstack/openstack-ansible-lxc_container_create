@@ -17,7 +17,7 @@
 - name: Write default container config
   lineinfile:
     dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
-    line: "{{ lxc_config_key_mapping[lxc_major_version|int][item.split('=', 1)[0]] | default(item.split('=', 1)[0]) }} = {{ item.split('=', 1)[-1] }}"
+    line: "{{ item }}"
     backup: "true"
   with_items: "{{ lxc_container_default_config_list | union(lxc_container_config_list) }}"
   delegate_to: "{{ physical_host }}"
@@ -172,7 +172,7 @@
   with_items:
     - "lxc.hook.pre-start = /var/lib/lxc/{{ inventory_hostname }}/veth-cleanup.sh"
     - "lxc.hook.post-stop = /var/lib/lxc/{{ inventory_hostname }}/veth-cleanup.sh"
-    - "{{ lxc_config_key_mapping[lxc_major_version|int]['lxc.haltsignal'] | default('lxc.haltsignal') }} = SIGRTMIN+4"
+    - "lxc.signal.halt = SIGRTMIN+4"
   delegate_to: "{{ physical_host }}"
 
 - name: Run veth wiring

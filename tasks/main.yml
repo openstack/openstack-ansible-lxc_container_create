@@ -13,18 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Pull lxc version
-  command: "lxc-ls --version"
-  changed_when: false
-  register: lxc_version
-  delegate_to: "{{ physical_host }}"
-  tags:
-    - skip_ansible_lint
-
-- name: Enable or Disable lxc three syntax
-  set_fact:
-    lxc_three_syntax: "{{ (lxc_version.stdout.split('.')[0] | int) >= 3 }}"
-    lxc_major_version: "{{ lxc_version.stdout.split('.')[0] }}"
 
 - name: Allow the usage of local facts
   file:

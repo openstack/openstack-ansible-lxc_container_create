@@ -24,17 +24,6 @@
       tags:
         - skip_ansible_lint
 
-    - name: Pull lxc version
-      command: "lxc-ls --version"
-      changed_when: false
-      register: lxc_version
-      tags:
-        - skip_ansible_lint
-
-    - name: Enable or Disable lxc three syntax
-      set_fact:
-        lxc_three_syntax: "{{ (lxc_version.stdout.split('.')[0] | int) >= 3 }}"
-
     - name: Verify that the expected containers are present with the correct addresses
       # Example stdout:
       # NAME        IPV4
@@ -48,7 +37,7 @@
           - lxc_container_list.stdout is search("container3\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3},\s+)*10.100.100.4(,\s+\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})*\s+")
 
     - name: Check for the presence of the right app armor profile for container1
-      command: "grep \"^{{ lxc_three_syntax | ternary('lxc.apparmor.profile', 'lxc.aa_profile') }} = {{ (hostvars[physical_host | default('localhost')]['ansible_distribution'] == 'Debian') | ternary('unconfined', 'lxc-openstack') }}$\" {{ item }}"
+      command: "grep \"^lxc.apparmor.profile={{ (hostvars[physical_host | default('localhost')]['ansible_distribution'] == 'Debian') | ternary('unconfined', 'lxc-openstack') }}$\" {{ item }}"
       register: container_profile
       failed_when: container_profile.rc != 0
       with_sequence: start=1 end=3 format=/var/lib/lxc/container%x/config
