@@ -13,13 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# NOTE(cloudnull): These variables have been kept to ensure
-#                  we're cleaning up the old interface files.
-#                  Remote this in the "R" release.
-lxc_container_default_route_interfaces: "/etc/sysconfig/network-scripts/route-{{ item.value.interface }}"
-lxc_container_interface_target: "/etc/sysconfig/network-scripts/ifcfg-{{ item.value.interface }}"
-lxc_container_default_interface: "/etc/sysconfig/network-scripts/ifcfg-eth0"
-
 lxc_container_map:
   distro: centos
   arch: amd64

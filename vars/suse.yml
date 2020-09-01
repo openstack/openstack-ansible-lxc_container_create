@@ -14,17 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Note this is a used in an iterable and requires the <item.value.interface> variable
-#   The container interface variable is a a default object that assume the
-#   Ansible iterator type is `with_dict`.
-lxc_container_interface: suse-interface.j2
-lxc_container_route_interface: suse-routes.j2
-lxc_container_default_route_interfaces: "/etc/sysconfig/network/ifroute-{{ item.value.interface }}"
-lxc_container_default_interface: "/etc/sysconfig/network/ifcfg-eth0"
-
-# Note this is a used in an iterable and requires the <item.value.interface> variable
-lxc_container_interface_target: "/etc/sysconfig/network/ifcfg-{{ item.value.interface }}"
-
 lxc_container_enable_resolved: false
 
 lxc_container_map:

@@ -13,11 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO: COnfigure with networkd or the other system.
-lxc_container_default_route_interfaces: "/etc/network/interfaces.d/{{ item.value.interface }}.cfg"
-lxc_container_interface_target: "/etc/network/interfaces.d/{{ item.value.interface }}.cfg"
-lxc_container_default_interface: "/etc/network/interfaces"
-
 lxc_container_map:
   distro: ubuntu
   arch: "{{ lxc_architecture_mapping.get( hostvars[physical_host]['ansible_architecture'] | lower ) }}"
