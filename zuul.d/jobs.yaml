@@ -21,32 +21,16 @@
       tox_env: dir
 
 - job:
-    name: openstack-ansible-dir-centos-7
+    name: openstack-ansible-dir-centos-8
     parent: openstack-ansible-functional
-    nodeset: centos-7
+    nodeset: centos-8
     vars:
       tox_env: dir
 
 - job:
-    name: openstack-ansible-btrfs-centos-7
+    name: openstack-ansible-overlayfs-centos-8
     parent: openstack-ansible-functional
-    nodeset: centos-7
-    voting: false
-    vars:
-      tox_env: btrfs
-
-- job:
-    name: openstack-ansible-machinectl-centos-7
-    parent: openstack-ansible-functional
-    nodeset: centos-7
-    voting: false
-    vars:
-      tox_env: mnctl
-
-- job:
-    name: openstack-ansible-overlayfs-centos-7
-    parent: openstack-ansible-functional
-    nodeset: centos-7
+    nodeset: centos-8
     voting: false
     vars:
       tox_env: ofs

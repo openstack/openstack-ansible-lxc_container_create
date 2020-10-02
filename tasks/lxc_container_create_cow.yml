@@ -21,6 +21,8 @@
   failed_when: false
   delegate_to: "{{ physical_host }}"
   register: lxc_container_info
+  tags:
+    - skip_ansible_lint
 
 # Due to https://bugs.launchpad.net/ubuntu/+source/lxc/+bug/1591510
 # the '-B' option is used, instead of the more understandable

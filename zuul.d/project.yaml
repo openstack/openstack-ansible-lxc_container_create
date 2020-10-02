@@ -21,13 +21,10 @@
       - release-notes-jobs-python3
     check:
       jobs:
-        - openstack-ansible-dir-centos-7
+        - openstack-ansible-dir-centos-8
         - openstack-ansible-dir-ubuntu-bionic
-        - openstack-ansible-btrfs-centos-7
-        - openstack-ansible-machinectl-centos-7
-        - openstack-ansible-overlayfs-centos-7
+        - openstack-ansible-overlayfs-centos-8
         - openstack-ansible-zfs-ubuntu-bionic
     gate:
       jobs:
-        - openstack-ansible-dir-centos-7
         - openstack-ansible-dir-ubuntu-bionic
