@@ -10,8 +10,9 @@ Address={{ item.value.address }}/{{ addr_cidr }}
 UseDNS={{ (lxc_container_enable_resolved | bool) | ternary('yes', 'no') }}
 UseNTP=yes
 RouteMetric=20
-{% if hostvars[inventory_hostname]['gateway'] is defined %}
-UseRoutes=False
+{% if hostvars[inventory_hostname]['gateway'] is defined
+   or item.value.dhcp_use_routes is defined %}
+UseRoutes={{ item.value.dhcp_use_routes | default(false) | bool | lower }}
 {% endif %}
 
 {% endif %}
