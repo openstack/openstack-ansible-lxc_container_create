@@ -27,4 +27,5 @@
         - openstack-ansible-zfs-ubuntu-bionic
     gate:
       jobs:
+        - openstack-ansible-dir-centos-8
         - openstack-ansible-dir-ubuntu-bionic
