@@ -23,9 +23,23 @@
       jobs:
         - openstack-ansible-dir-centos-8
         - openstack-ansible-dir-ubuntu-bionic
+        - openstack-ansible-dir-ubuntu-focal
         - openstack-ansible-overlayfs-centos-8
+        - openstack-ansible-overlayfs-ubuntu-bionic
+        - openstack-ansible-overlayfs-ubuntu-focal
+        - openstack-ansible-btrfs-ubuntu-bionic
+        - openstack-ansible-btrfs-ubuntu-focal
         - openstack-ansible-zfs-ubuntu-bionic
+        - openstack-ansible-zfs-ubuntu-focal
     gate:
       jobs:
         - openstack-ansible-dir-centos-8
         - openstack-ansible-dir-ubuntu-bionic
+        - openstack-ansible-dir-ubuntu-focal
+        - openstack-ansible-overlayfs-centos-8
+        - openstack-ansible-overlayfs-ubuntu-bionic
+        - openstack-ansible-overlayfs-ubuntu-focal
+        - openstack-ansible-btrfs-ubuntu-bionic
+        - openstack-ansible-btrfs-ubuntu-focal
+        - openstack-ansible-zfs-ubuntu-bionic
+        - openstack-ansible-zfs-ubuntu-focal
