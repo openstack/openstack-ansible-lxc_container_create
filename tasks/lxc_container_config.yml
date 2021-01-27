@@ -17,7 +17,7 @@
 - name: Write default container config
   lineinfile:
     dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
-    line: "{{ item }}"
+    line: "{{ item.split('=', 1)[0] }} = {{ item.split('=', 1)[1] }}"
     backup: "true"
   with_items: "{{ lxc_container_default_config_list | union(lxc_container_config_list) }}"
   delegate_to: "{{ physical_host }}"
