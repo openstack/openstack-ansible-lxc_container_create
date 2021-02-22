@@ -18,7 +18,7 @@ lxc_container_backing_store: machinectl
 
 lxc_container_map:
   distro: gentoo
-  arch: "{{ lxc_architecture_mapping.get( hostvars[physical_host]['ansible_architecture'] | lower ) }}"
+  arch: "{{ lxc_architecture_mapping.get( hostvars[physical_host]['ansible_facts']['architecture'] | lower ) }}"
   release: 17.0-systemd
 
 lxc_container_default_config_list:

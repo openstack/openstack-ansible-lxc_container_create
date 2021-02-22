@@ -30,32 +30,15 @@
   tags:
     - always
 
-- name: Collect physical host facts if missing
-  action:
-    module: setup
-  delegate_to: "{{ physical_host }}"
-  delegate_facts: yes
-  when:
-    - hostvars[physical_host]['ansible_kernel'] is not defined
-
-- name: Kernel version and LXC backing store check
-  debug:
-    msg: "Using overlayfs is not recommended when using Kernel version < 3.18"
-  when:
-    - lxc_container_backing_store == "overlayfs"
-    - hostvars[physical_host]['ansible_kernel'] is version('3.18.0-0-generic', '<')
-  tags:
-    - always
-
 - name: Gather variables for each operating system
   include_vars: "{{ item }}"
   with_first_found:
     - "{{ lxc_user_defined_container | default([]) }}"
-    - "{{ hostvars[physical_host]['ansible_distribution'] | lower }}-{{ hostvars[physical_host]['ansible_distribution_version'] | lower }}.yml"
-    - "{{ hostvars[physical_host]['ansible_distribution'] | lower }}-{{ hostvars[physical_host]['ansible_distribution_major_version'] | lower }}.yml"
-    - "{{ hostvars[physical_host]['ansible_os_family'] | lower }}-{{ hostvars[physical_host]['ansible_distribution_major_version'] | lower }}.yml"
-    - "{{ hostvars[physical_host]['ansible_distribution'] | lower }}.yml"
-    - "{{ hostvars[physical_host]['ansible_os_family'] | lower }}.yml"
+    - "{{ hostvars[physical_host]['ansible_facts']['distribution'] | lower }}-{{ hostvars[physical_host]['ansible_facts']['distribution_version'] | lower }}.yml"
+    - "{{ hostvars[physical_host]['ansible_facts']['distribution'] | lower }}-{{ hostvars[physical_host]['ansible_facts']['distribution_major_version'] | lower }}.yml"
+    - "{{ hostvars[physical_host]['ansible_facts']['os_family'] | lower }}-{{ hostvars[physical_host]['ansible_facts']['distribution_major_version'] | lower }}.yml"
+    - "{{ hostvars[physical_host]['ansible_facts']['distribution'] | lower }}.yml"
+    - "{{ hostvars[physical_host]['ansible_facts']['os_family'] | lower }}.yml"
   tags:
     - always
 
