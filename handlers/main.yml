@@ -106,13 +106,6 @@
   changed_when: false
   listen: Enable hostnamed
 
-# NOTE(hwoarang) openSUSE randomly fails to start the service
-# with an error like the following one
-# sysctl-container.service: Failed at step CGROUP spawning /sbin/sysctl: No such device
-# Until this is fixed, we workaround it by simply retrying a few more times
-# before giving up
-# https://bugzilla.suse.com/show_bug.cgi?id=1055426
-# https://bugs.launchpad.net/openstack-ansible/+bug/1712741
 - name: Enable container sysctl service
   service:
     name: "sysctl-container"
