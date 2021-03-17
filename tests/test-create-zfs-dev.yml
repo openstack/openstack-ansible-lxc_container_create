@@ -22,7 +22,7 @@
     - block:
       - name: Install ZFS packages
         package:
-          name: "{{ zfs_package[ansible_distribution | lower] }}"
+          name: "{{ zfs_package[ansible_facts['distribution'] | lower] }}"
           state: present
 
       - name: Create base directories
