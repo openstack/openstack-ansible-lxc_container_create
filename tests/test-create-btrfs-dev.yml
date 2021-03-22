@@ -56,5 +56,3 @@
   vars:
     btrfs_package:
       apt: "btrfs-progs"
-      yum: "btrfs-progs"
-      zypper: "btrfsprogs"
