@@ -95,13 +95,21 @@
 - name: Create container mac script
   template:
     src: container_mac_generation.sh.j2
-    dest: "/openstack/{{ inventory_hostname }}/{{ item.value.interface }}_mac_generation.sh"
+    dest: "/var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}_mac_generation.sh"
     mode: "0755"
   delegate_to: "{{ physical_host }}"
   with_dict: "{{ lxc_container_networks_combined }}"
 
+# TODO(noondeadpunk): Remove that in X cycle
+- name: Cleanup old mac scripts
+  file:
+    path: "/openstack/{{ inventory_hostname }}/{{ item.value.interface }}_mac_generation.sh"
+    state: absent
+  delegate_to: "{{ physical_host }}"
+  with_dict: "{{ lxc_container_networks_combined }}"
+
 - name: Set define static mac address from an existing interface
-  command: "/openstack/{{ inventory_hostname }}/{{ item.value.interface }}_mac_generation.sh"
+  command: "/var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}_mac_generation.sh"
   args:
     creates: "/var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}.hwaddr"
   delegate_to: "{{ physical_host }}"
