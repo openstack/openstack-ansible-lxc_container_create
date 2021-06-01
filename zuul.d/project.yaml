@@ -15,7 +15,8 @@
 
 - project:
     templates:
-      - openstack-ansible-role-jobs
+      - openstack-ansible-linters-jobs
+      - openstack-ansible-deploy-hosts_lxc-jobs
       - check-requirements
       - publish-openstack-docs-pti
       - build-release-notes-jobs-python3
