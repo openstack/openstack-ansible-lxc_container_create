@@ -17,6 +17,7 @@
     templates:
       - openstack-ansible-linters-jobs
       - openstack-ansible-deploy-hosts_lxc-jobs
+      - openstack-ansible-upgrade-infra_lxc-jobs
       - check-requirements
       - publish-openstack-docs-pti
       - build-release-notes-jobs-python3
