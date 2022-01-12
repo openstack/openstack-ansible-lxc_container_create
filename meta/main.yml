@@ -37,5 +37,3 @@ galaxy_info:
     - python
     - development
     - openstack
-dependencies:
-  - plugins
