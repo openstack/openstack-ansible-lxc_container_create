@@ -14,16 +14,16 @@
 # limitations under the License.
 
 - job:
-    name: openstack-ansible-dir-centos-8
+    name: openstack-ansible-dir-centos-8-stream
     parent: openstack-ansible-functional
-    nodeset: centos-8
+    nodeset: centos-8-stream
     vars:
       tox_env: dir
 
 - job:
-    name: openstack-ansible-overlayfs-centos-8
+    name: openstack-ansible-overlayfs-centos-8-stream
     parent: openstack-ansible-functional
-    nodeset: centos-8
+    nodeset: centos-8-stream
     vars:
       tox_env: ofs
 
@@ -52,33 +52,5 @@
     name: openstack-ansible-zfs-ubuntu-focal
     parent: openstack-ansible-functional
     nodeset: ubuntu-focal
-    vars:
-      tox_env: zfs
-
-- job:
-    name: openstack-ansible-dir-ubuntu-bionic
-    parent: openstack-ansible-functional
-    nodeset: ubuntu-bionic
-    vars:
-      tox_env: dir
-
-- job:
-    name: openstack-ansible-overlayfs-ubuntu-bionic
-    parent: openstack-ansible-functional
-    nodeset: ubuntu-bionic
-    vars:
-      tox_env: ofs
-
-- job:
-    name: openstack-ansible-btrfs-ubuntu-bionic
-    parent: openstack-ansible-functional
-    nodeset: ubuntu-bionic
-    vars:
-      tox_env: btrfs
-
-- job:
-    name: openstack-ansible-zfs-ubuntu-bionic
-    parent: openstack-ansible-functional
-    nodeset: ubuntu-bionic
     vars:
       tox_env: zfs
