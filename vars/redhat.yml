@@ -14,9 +14,9 @@
 # limitations under the License.
 
 lxc_container_map:
-  distro: centos
-  arch: amd64
-  release: 8
+  distro: "{{ hostvars[physical_host]['ansible_facts']['distribution'] | lower }}"
+  arch: "{{ lxc_architecture_mapping.get( hostvars[physical_host]['ansible_facts']['architecture'] | lower ) }}"
+  release: "{{ hostvars[physical_host]['ansible_facts']['distribution_major_version'] }}"
 
 lxc_container_default_config_list:
   - "lxc.start.auto=1"
