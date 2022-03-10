@@ -3,7 +3,7 @@ Name={{ item.value.interface }}
 
 {% if item.value.address is defined %}
 [Address]
-{% set addr_cidr = (item.value.address | string + '/' + item.value.netmask | string) | ipaddr('prefix') %}
+{% set addr_cidr = (item.value.address | string + '/' + item.value.netmask | string) | ansible.utils.ipaddr('prefix') %}
 Address={{ item.value.address }}/{{ addr_cidr }}
 {% else %}
 [DHCP]
@@ -31,7 +31,7 @@ Metric={{ 20 + loop.index }}
 
 [Network]
 {% if item.value.address is defined %}
-{%   set addr_cidr = (item.value.address | string + '/' + item.value.netmask | string) | ipaddr('prefix') %}
+{%   set addr_cidr = (item.value.address | string + '/' + item.value.netmask | string) | ansible.utils.ipaddr('prefix') %}
 Address={{ item.value.address }}/{{ addr_cidr }}
 {% else %}
 DHCP=yes
