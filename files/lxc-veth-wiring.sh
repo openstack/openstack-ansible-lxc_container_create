@@ -59,4 +59,9 @@ fi
 ns_cmd ip link set dev "${INTERFACE}" down || true
 ns_cmd systemctl restart systemd-networkd
 
+# Sleep for 2s to avoid more than 5 restarts of systemd-networkd in
+# 10s. Otherwise the systemd service restart limit will be reached
+# and the service will fail to restart.
+sleep 2
+
 exit ${EXIT_CODE}
