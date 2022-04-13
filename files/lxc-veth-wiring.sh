@@ -23,6 +23,7 @@ VETH="${2}"
 INTERFACE="${3}"
 BRIDGE="${4}"
 VETH_PEER="$(openssl rand -hex 4)"
+BRIDGE_TYPE="${5}"
 
 # PID of running container
 PID="$(lxc-info -pHn ${CONTAINER_NAME})"
@@ -51,9 +52,11 @@ if ip a l "${VETH_PEER}";then
   EXIT=3
 fi
 
-if ! brctl show "${BRIDGE}" | grep -q "${VETH}"; then
-  brctl addif "${BRIDGE}" "${VETH}"
-  EXIT_CODE=3
+if [ "${BRIDGE}" !=  "openvswitch" ]; then
+  if ! brctl show "${BRIDGE}" | grep -q "${VETH}"; then
+    brctl addif "${BRIDGE}" "${VETH}"
+    EXIT_CODE=3
+  fi
 fi
 
 ns_cmd ip link set dev "${INTERFACE}" down || true

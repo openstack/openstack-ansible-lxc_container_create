@@ -199,6 +199,7 @@
     "{{ lxc_container_network_veth_pair[-15:] }}"
     "{{ item.value.interface }}"
     "{{ item.value.bridge }}"
+    "{{ item.value.bridge_type | default('linux_bridge') }}"
   register: wiring_script
   with_dict: "{{ lxc_container_networks_combined }}"
   when:
