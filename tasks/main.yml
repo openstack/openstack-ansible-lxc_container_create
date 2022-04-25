@@ -30,18 +30,6 @@
   tags:
     - always
 
-- name: Gather variables for each operating system
-  include_vars: "{{ item }}"
-  with_first_found:
-    - "{{ lxc_user_defined_container | default([]) }}"
-    - "{{ hostvars[physical_host]['ansible_facts']['distribution'] | lower }}-{{ hostvars[physical_host]['ansible_facts']['distribution_version'] | lower }}.yml"
-    - "{{ hostvars[physical_host]['ansible_facts']['distribution'] | lower }}-{{ hostvars[physical_host]['ansible_facts']['distribution_major_version'] | lower }}.yml"
-    - "{{ hostvars[physical_host]['ansible_facts']['os_family'] | lower }}-{{ hostvars[physical_host]['ansible_facts']['distribution_major_version'] | lower }}.yml"
-    - "{{ hostvars[physical_host]['ansible_facts']['distribution'] | lower }}.yml"
-    - "{{ hostvars[physical_host]['ansible_facts']['os_family'] | lower }}.yml"
-  tags:
-    - always
-
 - name: Read custom facts from previous runs
   setup:
     filter: ansible_local

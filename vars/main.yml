@@ -13,6 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+lxc_container_map:
+  distro: "{{ hostvars[physical_host]['ansible_facts']['distribution'] | lower }}"
+  arch: "{{ lxc_architecture_mapping.get( hostvars[physical_host]['ansible_facts']['architecture'] | lower ) }}"
+  release: "{{ hostvars[physical_host]['ansible_facts']['distribution_major_version'] }}"
+
+lxc_container_default_config_list:
+  - "lxc.start.auto=1"
+  - "lxc.start.delay=15"
+  - "lxc.group=onboot"
+  - "lxc.group=openstack"
+  - "lxc.autodev=1"
+  - "lxc.hook.autodev=/var/lib/lxc/{{ inventory_hostname }}/autodev"
+
 # A set of container networks used within the LXC containers. This information
 # is sourced from the assumed "container_networks", "container_extra_networks"
 # and "lxc_container_networks" variables and combined into a single

@@ -23,18 +23,22 @@
       - build-release-notes-jobs-python3
     check:
       jobs:
+        - openstack-ansible-deploy-hosts_lxc-ubuntu-focal:
+            voting: false
         - openstack-ansible-dir-centos-8-stream
         - openstack-ansible-dir-ubuntu-bionic
-        - openstack-ansible-dir-ubuntu-focal
+        #- openstack-ansible-dir-ubuntu-focal
         - openstack-ansible-overlayfs-centos-8-stream
-        - openstack-ansible-overlayfs-ubuntu-focal
-        - openstack-ansible-btrfs-ubuntu-focal
-        - openstack-ansible-zfs-ubuntu-focal
+        #- openstack-ansible-overlayfs-ubuntu-focal
+        #- openstack-ansible-btrfs-ubuntu-focal
+        #- openstack-ansible-zfs-ubuntu-focal
     gate:
       jobs:
+        - openstack-ansible-deploy-hosts_lxc-ubuntu-focal:
+            voting: false
         - openstack-ansible-dir-centos-8-stream
-        - openstack-ansible-dir-ubuntu-focal
+        #- openstack-ansible-dir-ubuntu-focal
         - openstack-ansible-overlayfs-centos-8-stream
-        - openstack-ansible-overlayfs-ubuntu-focal
-        - openstack-ansible-btrfs-ubuntu-focal
-        - openstack-ansible-zfs-ubuntu-focal
+        #- openstack-ansible-overlayfs-ubuntu-focal
+        #- openstack-ansible-btrfs-ubuntu-focal
+        #- openstack-ansible-zfs-ubuntu-focal
