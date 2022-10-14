@@ -50,3 +50,66 @@ _lxc_container_systemd_networks: |
   }) %}
   {% endfor %}
   {{ systemd_networks }}
+
+_lxc_container_systemd_services: |
+  {% set systemd_services = [] %}
+  {% for network in lxc_container_networks_combined.values() %}
+  {% set postup_command = network.postup | default([]) | union(lxc_container_default_postup) %}
+  {% set postdown_command = network.postdown | default([]) | union(lxc_container_default_postdown) %}
+  {% set preup_command = network.preup | default([]) | union(lxc_container_default_preup) %}
+  {% set predown_command = network.predown | default([]) | union(lxc_container_default_predown) %}
+  {% if postup_command or postdown_command %}
+  {%   set _ = systemd_services.append({
+        'service_name': 'post-up-down-' ~ network.interface,
+        'service_type': 'oneshot',
+        'state': 'started',
+        'enabled': True,
+        'execstarts': postup_command,
+        'execstops': postdown_command,
+        'after_targets': ['network.target']
+  }) %}
+  {% endif %}
+  {% if preup_command or predown_command %}
+  {%  set _ = systemd_services.append({
+        'service_name': 'pre-up-down-' ~ network.interface,
+        'service_type': 'oneshot',
+        'state': 'started',
+        'enabled': True,
+        'execstarts': preup_command,
+        'execstops': predown_command,
+        'after_targets': ['local-fs.target'],
+        'config_overrides': {'Unit': {'Before': 'network-pre.target', 'Wants': 'network-pre.target'}}
+  }) %}
+  {% endif %}
+  {% endfor %}
+  {% set _ = systemd_services.append({
+    'service_name': 'sysctl-container',
+    'service_type': 'oneshot',
+    'state': 'started',
+    'enabled': True,
+    'execstarts': '{{ sysctl_path }}/sysctl -p',
+    'after_targets': ['systemd-modules-load.service'],
+    'config_overrides': {
+      'Unit': {
+        'DefaultDependencies': 'no',
+        'Conflicts': 'shutdown.target',
+        'Before': 'sysinit.target shutdown.target'
+      },
+      'Service': {
+        'RemainAfterExit': 'yes'
+      }
+    }
+  }) %}
+  {% set _ = systemd_services.append({
+    'service_name': 'systemd-hostnamed',
+    'state': 'started',
+    'enabled': True,
+    'systemd_overrides_only': True,
+    'systemd_overrides': {
+      'Service': {
+        'PrivateNetwork': 'no',
+        'PrivateDevices': 'no'
+      }
+    }
+  }) %}
+  {{ systemd_services }}

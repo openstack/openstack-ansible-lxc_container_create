@@ -214,6 +214,16 @@
 # VETH AND CONNECTIVITY SETTINGS
 
 
+# SYSTEMD SERVICES
+- name: Run the systemd-service role
+  import_role:
+    name: systemd_service
+  vars:
+    systemd_service_enabled: true
+    systemd_slice_name: lxc-system
+    systemd_services: "{{ _lxc_container_systemd_services }}"
+# SYSTEMD SERVICES
+
 # ENVIRONMENT AND HOSTNAME SETTINGS
 - name: Add global_environment_variables to environment file
   blockinfile:
@@ -234,17 +244,12 @@
     mode: "0644"
   remote_user: root
 
-- name: Ensure the hostnamed override directory exists
-  file:
-    path: "/etc/systemd/system/systemd-hostnamed.service.d"
-    state: "directory"
-
-- name: Create hostnamed override
-  template:
-    src: "systemd-hostnamed.conf"
-    dest: "/etc/systemd/system/systemd-hostnamed.service.d/hostnamed.conf"
-  notify:
-    - Enable hostnamed
+- name: Set hostnamectl name
+  command: "/usr/bin/hostnamectl --static --pretty --transient set-hostname {{ intended_hostname }}"
+  changed_when: false
+  vars:
+    intended_hostname: "{{ inventory_hostname | replace('_', '-') | quote }}"
+  when: ansible_facts['hostname'] != intended_hostname
 
 - name: Generate machine-id
   command: "systemd-machine-id-setup"
@@ -299,43 +304,6 @@
   when:
     - lxc_container_journal_link | bool
 # ENVIRONMENT AND HOSTNAME SETTINGS
-
-
-# POST UP/DOWN SERVICES AND KERNEL SETTINGS
-- name: Create post-up-down oneshot service
-  template:
-    src: "post-up-down.oneshot.j2"
-    dest: "/etc/systemd/system/post-up-down-{{ item.value.interface }}.service"
-    mode: "0644"
-    owner: "root"
-    group: "root"
-  with_dict: "{{ lxc_container_networks_combined }}"
-  notify:
-    - Reload systemd daemon
-
-- name: Create pre-up-down oneshot service
-  template:
-    src: "pre-up-down.oneshot.j2"
-    dest: "/etc/systemd/system/pre-up-down-{{ item.value.interface }}.service"
-    mode: "0644"
-    owner: "root"
-    group: "root"
-  with_dict: "{{ lxc_container_networks_combined }}"
-  notify:
-    - Reload systemd daemon
-
-- name: Ensure sysctl can be applied
-  template:
-    src: "sysctl-container.init.j2"
-    dest: "/etc/systemd/system/sysctl-container.service"
-    mode: "0644"
-    owner: "root"
-    group: "root"
-  remote_user: root
-  notify:
-    - Enable container sysctl service
-# POST UP/DOWN SERVICES AND KERNEL SETTINGS
-
 
 # SET CONTAINER FACTS
 - name: Allow the usage of local facts

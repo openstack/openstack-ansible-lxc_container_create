@@ -72,32 +72,3 @@
     state: started
     enabled: true
     daemon_reload: true
-
-- name: Reload systemd daemon
-  systemd:
-    daemon_reload: true
-
-- name: Start hostnamed
-  systemd:
-    name: systemd-hostnamed
-    state: started
-    enabled: true
-    daemon_reload: true
-  listen: Enable hostnamed
-
-- name: Set hostnamectl name
-  command: "/usr/bin/hostnamectl --static --pretty --transient set-hostname {{ inventory_hostname | replace('_', '-') | quote }}"
-  changed_when: false
-  listen: Enable hostnamed
-
-- name: Enable container sysctl service
-  service:
-    name: "sysctl-container"
-    state: started
-    enabled: yes
-    daemon_reload: yes
-  remote_user: root
-  register: _sysctl_service_started
-  until: _sysctl_service_started is success
-  retries: 5
-  delay: 5
