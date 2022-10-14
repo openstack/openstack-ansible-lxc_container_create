@@ -13,23 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Create networkd directory
-  file:
-    path: "/etc/systemd/network"
-    state: directory
 
-- name: Drop container network file (interfaces)
-  template:
-    src: "container_network.network.j2"
-    dest: "/etc/systemd/network/{{ item.value.interface }}.network"
-    owner: "root"
-    group: "root"
-    mode: "0644"
-  with_dict: "{{ lxc_container_networks_combined }}"
-  notify:
-    - Enable dbus
-    - Enable resolved
-    - Restart networkd
+- name: Run the systemd-networkd role
+  import_role:
+    name: systemd_networkd
+  vars:
+    systemd_run_networkd: true
+    systemd_networkd_distro_packages: []
+    systemd_networks: "{{ _lxc_container_systemd_networks }}"
 
 - name: Create resolved link
   file:

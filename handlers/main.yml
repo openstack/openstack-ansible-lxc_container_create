@@ -57,22 +57,6 @@
   changed_when: false
   listen: Lxc container restart
 
-- name: Flush addresses
-  command: "ip addr flush {{ item.value.interface }}"
-  with_dict: "{{ lxc_container_networks_combined }}"
-  failed_when: false
-  when:
-    - item.value.interface is defined
-  listen: Restart networkd
-
-- name: Restart systemd-networkd
-  systemd:
-    name: systemd-networkd
-    state: restarted
-    enabled: true
-    daemon_reload: true
-  listen: Restart networkd
-
 - name: Enable resolved
   systemd:
     name: systemd-resolved

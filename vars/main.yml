@@ -33,3 +33,20 @@ lxc_container_default_config_list:
 lxc_container_networks_combined: "{{ container_networks | default({}) | combine(container_extra_networks | default({})) | combine(lxc_container_networks) }}"
 sysctl_path: "/sbin"
 _lxc_container_bind_mounts: []
+
+_lxc_container_systemd_networks: |
+  {% set systemd_networks = [] %}
+  {% for network in lxc_container_networks_combined.values() %}
+  {% set _ = systemd_networks.append({
+    'filename': network.interface,
+    'interface': network.interface,
+    'address': network.address | default('dhcp'),
+    'netmask': network.netmask | default(),
+    'gateway': network.gateway | default(),
+    'mtu': network.mtu | default(),
+    'static_routes': network.static_routes | default([]),
+    'usedns': ('dhcp_use_dns' in network) | ternary(network.dhcp_use_dns, lxc_container_enable_resolved | bool),
+    'config_overrides': ('dhcp_use_routes' in network) | ternary({'DHCP': network.dhcp_use_routes}, {})
+  }) %}
+  {% endfor %}
+  {{ systemd_networks }}
