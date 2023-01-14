@@ -144,7 +144,8 @@ lxc_container_network_veth_pair_indexed: "{{ lxc_container_network_veth_pair_pre
 # A default set of container networks used within the LXC containers.
 lxc_container_networks:
   lxcbr0_address:
-    bridge: lxcbr0
+    bridge: "{{ lxc_net_bridge | default('lxcbr0') }}"
+    bridge_type: "{{ lxc_net_bridge_type | default('linuxbridge') }}"
     interface: eth0
     type: veth
 
