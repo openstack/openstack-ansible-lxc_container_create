@@ -87,7 +87,7 @@ _lxc_container_systemd_services: |
     'service_type': 'oneshot',
     'state': 'started',
     'enabled': True,
-    'execstarts': '{{ sysctl_path }}/sysctl -p',
+    'execstarts': sysctl_path ~ '/sysctl -p',
     'after_targets': ['systemd-modules-load.service'],
     'config_overrides': {
       'Unit': {
