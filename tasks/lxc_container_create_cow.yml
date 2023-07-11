@@ -37,6 +37,7 @@
     --logfile {{ lxc_container_log_path }}/lxc-{{ inventory_hostname }}.log
     --logpriority {{ (debug | bool) | ternary('DEBUG', 'INFO') }}
   delegate_to: "{{ physical_host }}"
+  changed_when: false
   when:
     - lxc_container_info.rc != 0
 

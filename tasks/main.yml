@@ -18,6 +18,7 @@
   file:
     path: /etc/ansible/facts.d/
     state: directory
+    mode: "0755"
   delegate_to: "{{ physical_host }}"
   tags:
     - always
@@ -39,38 +40,42 @@
 
 # NOTE(cloudnull): Check for the LXC volume group when creating LVM backed
 #                  containers.
-- block:
-  - name: Check for lxc volume group
-    shell: "(which vgs > /dev/null && vgs | grep -o '{{ lxc_container_vg_name }}') || false"
-    register: vg_result
-    failed_when: false
-    changed_when: vg_result.rc != 0
-    delegate_to: "{{ physical_host }}"
-  - name: LXC VG check
-    fail:
-      msg: >-
-        The "lxc_container_backing_store" option was set to "lvm" but no LXC
-        volume group was found on the physical host. Please check your settings
-        and host setup.
-    when:
-      - vg_result.rc != 0
+- name: Verify LVM VG
+  block:
+    - name: Check for lxc volume group
+      shell: "(which vgs > /dev/null && vgs | grep -o '{{ lxc_container_vg_name }}') || false"
+      register: vg_result
+      failed_when: false
+      changed_when: vg_result.rc != 0
+      delegate_to: "{{ physical_host }}"
+    - name: LXC VG check
+      fail:
+        msg: >-
+          The "lxc_container_backing_store" option was set to "lvm" but no LXC
+          volume group was found on the physical host. Please check your settings
+          and host setup.
+      when:
+        - vg_result.rc != 0
   when:
     - lxc_container_backing_store == 'lvm'
   tags:
     - always
 
-- include_tasks: lxc_container_destroy.yml
+- name: Including lxc_container_destroy tasks
+  include_tasks: lxc_container_destroy.yml
   when:
     - physical_host != inventory_hostname
     - lxc_container_recreate | bool
 
-- include_tasks: lxc_container_create.yml
+- name: Including lxc_container_create tasks
+  include_tasks: lxc_container_create.yml
   when:
     - physical_host != inventory_hostname
   tags:
     - lxc-create
 
-- include_tasks: lxc_container_config.yml
+- name: Including lxc_container_config tasks
+  include_tasks: lxc_container_config.yml
   when:
     - physical_host != inventory_hostname
   tags:

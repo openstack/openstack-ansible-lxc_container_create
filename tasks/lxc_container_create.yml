@@ -17,6 +17,7 @@
   file:
     path: "{{ item }}"
     state: "directory"
+    mode: "0755"
   with_items:
     - "/openstack/{{ inventory_hostname }}"
     - "/openstack/backup/{{ inventory_hostname }}"
@@ -34,7 +35,8 @@
   delegate_to: "{{ physical_host }}"
 
 # Run the lxc container creation process based on the backend store type
-- include_tasks: "lxc_container_create_{{ lxc_container_backing_store }}.yml"
+- name: "Including lxc_container_create tasks for {{ lxc_container_backing_store }}"
+  include_tasks: "lxc_container_create_{{ lxc_container_backing_store }}.yml"
 
 - name: Check container state
   command: "lxc-info -n {{ inventory_hostname }} --state"
@@ -58,6 +60,7 @@
   delegate_to: "{{ physical_host }}"
   register: _lxc_container_create
   until: _lxc_container_create is success
+  changed_when: false
   retries: 3
   delay: 5
   when:

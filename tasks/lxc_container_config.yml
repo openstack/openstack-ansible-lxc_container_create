@@ -38,6 +38,7 @@
   file:
     path: "{{ item['host_directory'] }}"
     state: "directory"
+    mode: "0755"
   with_items: "{{ lxc_container_default_bind_mounts | union(_lxc_container_bind_mounts) | union(lxc_container_bind_mounts) }}"
   delegate_to: "{{ physical_host }}"
 
@@ -126,7 +127,7 @@
 # NOTE(cloudnull): To dynamically set the mac address "facts" Ansible line
 #                  format is being used
 - name: Set fixed hardware address fact
-  set_fact: "{{ item.item.value.interface }}_mac_address={{ item.content | b64decode }}"
+  set_fact: "{{ item.item.value.interface }}_mac_address={{ item.content | b64decode }}" # noqa: no-free-form
   with_items:
     - "{{ macs.results }}"
 
@@ -210,7 +211,8 @@
   changed_when: wiring_script.rc == 3
   delegate_to: "{{ physical_host }}"
 
-- include_tasks: "lxc_container_network.yml"
+- name: Including lxc_container_network tasks
+  include_tasks: "lxc_container_network.yml"
 # VETH AND CONNECTIVITY SETTINGS
 
 
@@ -263,6 +265,7 @@
   file:
     path: "/var/lib/dbus"
     state: "directory"
+    mode: "0755"
 
 - name: Create dbus machine-id
   copy:
@@ -310,6 +313,7 @@
   file:
     path: /etc/ansible/facts.d/
     state: directory
+    mode: "0755"
   tags:
     - always
 
@@ -319,6 +323,7 @@
     section: lxc
     option: variant
     value: "{{ properties['lxc_container_variant'] | default(lxc_container_variant) }}"
+    mode: "0644"
   tags:
     - always
 # SET CONTAINER FACTS

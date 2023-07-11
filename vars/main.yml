@@ -15,7 +15,7 @@
 
 lxc_container_map:
   distro: "{{ hostvars[physical_host]['ansible_facts']['distribution'] | lower }}"
-  arch: "{{ lxc_architecture_mapping.get( hostvars[physical_host]['ansible_facts']['architecture'] | lower ) }}"
+  arch: "{{ lxc_architecture_mapping.get(hostvars[physical_host]['ansible_facts']['architecture'] | lower) }}"
   release: "{{ hostvars[physical_host]['ansible_facts']['distribution_major_version'] }}"
 
 lxc_container_default_config_list:

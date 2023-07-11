@@ -164,7 +164,7 @@ lxc_container_enable_resolved: true
 # "{{ ansible_facts['distribution'] }}-{{ ansible_facts['distribution_version'] }}-container.yml"
 # or by providing the full path to a local file containing all of the variables
 # needed to prepare a container.
-#lxc_user_defined_container: null
+# lxc_user_defined_container: null
 
 # Dictionary of settings for containers
 properties: {}
