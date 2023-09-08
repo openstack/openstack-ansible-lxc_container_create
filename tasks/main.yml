@@ -69,6 +69,10 @@
 
 - name: Including lxc_container_create tasks
   include_tasks: lxc_container_create.yml
+  args:
+    apply:
+      tags:
+        - lxc-create
   when:
     - physical_host != inventory_hostname
   tags:
@@ -76,6 +80,10 @@
 
 - name: Including lxc_container_config tasks
   include_tasks: lxc_container_config.yml
+  args:
+    apply:
+      tags:
+        - lxc-config
   when:
     - physical_host != inventory_hostname
   tags:
