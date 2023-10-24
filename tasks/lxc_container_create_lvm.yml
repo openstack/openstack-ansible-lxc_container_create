@@ -14,7 +14,7 @@
 # limitations under the License.
 
 - name: Create container (lvm)
-  lxc_container:
+  community.general.lxc_container:
     name: "{{ inventory_hostname }}"
     container_log: true
     container_log_level: "{{ (debug | bool) | ternary('DEBUG', 'INFO') }}"

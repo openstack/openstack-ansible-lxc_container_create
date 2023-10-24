@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 - name: Delete container from host
-  lxc_container:
+  community.general.lxc_container:
     name: "{{ inventory_hostname }}"
     state: "absent"
   delegate_to: "{{ physical_host }}"

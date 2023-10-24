@@ -54,7 +54,7 @@
     - Lxc container restart
 
 - name: Create and start the container
-  lxc_container:
+  community.general.lxc_container:
     name: "{{ inventory_hostname }}"
     state: started
   delegate_to: "{{ physical_host }}"

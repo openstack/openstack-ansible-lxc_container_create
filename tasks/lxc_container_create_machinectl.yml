@@ -18,7 +18,7 @@
 #                  will build and store all containers using a copy-on-write
 #                  snapshot from the base image stored withine machinectl.
 - name: Create container (machinectl)
-  lxc_container:
+  community.general.lxc_container:
     name: "{{ inventory_hostname }}"
     container_log: true
     container_log_level: "{{ (debug | bool) | ternary('DEBUG', 'INFO') }}"
