@@ -39,6 +39,13 @@ lxc_container_default_bind_mounts:
   - host_directory: "/openstack/backup/{{ inventory_hostname }}"
     container_directory: "/var/backup"
 
+# A list of automatic mounts to be passed to the lxc.mount.auto config key
+# See lxc.container.conf(5)
+lxc_container_mount_auto:
+  - "proc:mixed"
+  - "sys:ro"
+  - "cgroup:mixed"
+
 # When using a base container to snapshot from for the overlayfs or LVM
 # copy-on-write backing stored, the base container prefix/name can be set.
 lxc_container_base_name_prefix: ''

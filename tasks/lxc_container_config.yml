@@ -25,12 +25,11 @@
   notify:
     - Lxc container restart
 
-- name: Ensure containers have access RO cgroups
+- name: Ensure containers have required auto mounts
   lineinfile:
     dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
-    line: "lxc.mount.auto = proc:mixed sys:ro cgroup:mixed"
-    regexp: "^lxc.mount.auto = proc:(rw|mixed) sys:ro cgroup:(ro|mixed)$"
-    insertafter: "^lxc.mount.auto"
+    line: "lxc.mount.auto = {{ lxc_container_mount_auto | join(' ') }}"
+    regexp: "^lxc.mount.auto ="
     backup: "true"
   delegate_to: "{{ physical_host }}"
 
