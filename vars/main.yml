@@ -46,7 +46,7 @@ _lxc_container_systemd_networks: |
     'mtu': network.mtu | default(),
     'static_routes': network.static_routes | default([]),
     'usedns': ('dhcp_use_dns' in network) | ternary(network.dhcp_use_dns, lxc_container_enable_resolved | bool),
-    'config_overrides': ('dhcp_use_routes' in network) | ternary({'DHCP': network.dhcp_use_routes}, {})
+    'config_overrides': ('dhcp_use_routes' in network) | ternary({'DHCP': {'UseRoutes': network.dhcp_use_routes}}, {})
   }) %}
   {% endfor %}
   {{ systemd_networks }}
