@@ -90,7 +90,6 @@
   delegate_to: "{{ physical_host }}"
 # CONTAINER SETUP AND CONFIG
 
-
 # VETH AND CONNECTIVITY SETTINGS
 - name: Create container mac script
   template:
@@ -213,7 +212,6 @@
 - name: Including lxc_container_network tasks
   include_tasks: "lxc_container_network.yml"
 # VETH AND CONNECTIVITY SETTINGS
-
 
 # SYSTEMD SERVICES
 - name: Run the systemd-service role

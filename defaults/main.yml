@@ -14,7 +14,7 @@
 # limitations under the License.
 
 ## Verbosity Options
-debug: False
+debug: false
 
 ## Parameters provided to the wait_for_connection module after a container
 ## reboot is triggered by the role
@@ -48,7 +48,7 @@ lxc_container_mount_auto:
 
 # When using a base container to snapshot from for the overlayfs or LVM
 # copy-on-write backing stored, the base container prefix/name can be set.
-lxc_container_base_name_prefix: ''
+lxc_container_base_name_prefix: ""
 lxc_container_base_name: "{{ lxc_container_base_name_prefix }}{{ lxc_container_map.distro }}-{{ lxc_container_map.release }}-{{ lxc_container_map.arch }}"
 
 # Mappings from Ansible reported architecture to distro release architecture
@@ -73,7 +73,7 @@ lxc_container_fs_type: ext4
 #  the ``lxc_container_backing_method`` when the
 #  ``lxc_container_backing_store`` is set to ``lvm``. When this is set it
 #  will use a snapshot of the base container to build the containers.
-lxc_container_backing_method: null
+lxc_container_backing_method:
 
 # The container backing store can be set to 'overlayfs' to use overlayfs
 # This should only be done for production use with a linux kernel > 3.14
@@ -140,7 +140,7 @@ lxc_container_machinectl_template_options: >-
   {{ lxc_container_download_template_extra_options }}
 
 # Toggle the restart of containers via the handler.
-lxc_container_allow_restarts: yes
+lxc_container_allow_restarts: true
 
 lxc_container_network_veth_pair_prefix: "{{ inventory_hostname[-8:].replace('-', '').replace('_', '') }}"
 lxc_container_network_veth_pair: "{{ lxc_container_network_veth_pair_prefix }}_{{ item.value.interface }}"
