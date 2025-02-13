@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 - name: Allow the usage of local facts
-  file:
+  ansible.builtin.file:
     path: /etc/ansible/facts.d/
     state: directory
     mode: "0755"
@@ -22,7 +22,7 @@
     - always
 
 - name: Check the physical_host variable is set
-  fail:
+  ansible.builtin.fail:
     msg: "The physical_host variable is not defined."
   when:
     - physical_host is undefined
@@ -30,7 +30,7 @@
     - always
 
 - name: Read custom facts from previous runs
-  setup:
+  ansible.builtin.setup:
     filter: ansible_local
   delegate_to: "{{ physical_host }}"
   tags:
@@ -41,13 +41,13 @@
 - name: Verify LVM VG
   block:
     - name: Check for lxc volume group
-      shell: "(which vgs > /dev/null && vgs | grep -o '{{ lxc_container_vg_name }}') || false"
+      ansible.builtin.shell: "(which vgs > /dev/null && vgs | grep -o '{{ lxc_container_vg_name }}') || false"
       register: vg_result
       failed_when: false
       changed_when: vg_result.rc != 0
       delegate_to: "{{ physical_host }}"
     - name: LXC VG check
-      fail:
+      ansible.builtin.fail:
         msg: >-
           The "lxc_container_backing_store" option was set to "lvm" but no LXC
           volume group was found on the physical host. Please check your settings
@@ -60,13 +60,13 @@
     - always
 
 - name: Including lxc_container_destroy tasks
-  include_tasks: lxc_container_destroy.yml
+  ansible.builtin.include_tasks: lxc_container_destroy.yml
   when:
     - physical_host != inventory_hostname
     - lxc_container_recreate | bool
 
 - name: Including lxc_container_create tasks
-  include_tasks: lxc_container_create.yml
+  ansible.builtin.include_tasks: lxc_container_create.yml
   args:
     apply:
       tags:
@@ -77,7 +77,7 @@
     - lxc-create
 
 - name: Including lxc_container_config tasks
-  include_tasks: lxc_container_config.yml
+  ansible.builtin.include_tasks: lxc_container_config.yml
   args:
     apply:
       tags:
@@ -88,8 +88,8 @@
     - lxc-config
 
 - name: Force all notified handlers now
-  meta: flush_handlers
+  ansible.builtin.meta: flush_handlers
 
 - name: (RE)Gather facts post setup
-  setup:
+  ansible.builtin.setup:
     gather_subset: "network,hardware,virtual"

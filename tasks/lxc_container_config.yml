@@ -15,7 +15,7 @@
 
 # CONTAINER SETUP AND CONFIG
 - name: Write default container config
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
     line: "{{ item.split('=', 1)[0] }} = {{ item.split('=', 1)[1] }}"
     backup: "true"
@@ -26,7 +26,7 @@
     - Lxc container restart
 
 - name: Ensure containers have required auto mounts
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
     line: "lxc.mount.auto = {{ lxc_container_mount_auto | join(' ') }}"
     regexp: "^lxc.mount.auto ="
@@ -34,7 +34,7 @@
   delegate_to: "{{ physical_host }}"
 
 - name: Ensure bind mount host directories exists
-  file:
+  ansible.builtin.file:
     path: "{{ item['host_directory'] }}"
     state: "directory"
     mode: "0755"
@@ -42,7 +42,7 @@
   delegate_to: "{{ physical_host }}"
 
 - name: Add bind mount configuration to container
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
     line: "lxc.mount.entry = {{ item['host_directory'] }} {{ item['container_directory'].lstrip('/') }} none bind,create=dir 0 0"
     backup: "true"
@@ -59,11 +59,11 @@
   delegate_to: "{{ physical_host }}"
 
 - name: Gather container facts
-  setup:
+  ansible.builtin.setup:
     gather_subset: "!all"
 
 - name: Drop container setup script
-  template:
+  ansible.builtin.template:
     src: "container-setup.sh.j2"
     dest: "/opt/container-setup.sh"
     owner: "root"
@@ -71,7 +71,7 @@
     mode: "0755"
 
 - name: Drop container first run script
-  template:
+  ansible.builtin.template:
     src: "container-first-run.sh.j2"
     dest: "/var/lib/lxc/{{ inventory_hostname }}/container-first-run.sh"
     owner: "root"
@@ -80,7 +80,7 @@
   delegate_to: "{{ physical_host }}"
 
 - name: Execute first script
-  command: "/var/lib/lxc/{{ inventory_hostname }}/container-first-run.sh"
+  ansible.builtin.command: "/var/lib/lxc/{{ inventory_hostname }}/container-first-run.sh"
   args:
     creates: "/var/lib/lxc/{{ inventory_hostname }}/setup.complete"
   register: container_extra_commands
@@ -92,7 +92,7 @@
 
 # VETH AND CONNECTIVITY SETTINGS
 - name: Create container mac script
-  template:
+  ansible.builtin.template:
     src: container_mac_generation.sh.j2
     dest: "/var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}_mac_generation.sh"
     mode: "0755"
@@ -101,21 +101,21 @@
 
 # TODO(noondeadpunk): Remove that in X cycle
 - name: Cleanup old mac scripts
-  file:
+  ansible.builtin.file:
     path: "/openstack/{{ inventory_hostname }}/{{ item.value.interface }}_mac_generation.sh"
     state: absent
   delegate_to: "{{ physical_host }}"
   with_dict: "{{ lxc_container_networks_combined }}"
 
 - name: Set define static mac address from an existing interface
-  command: "/var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}_mac_generation.sh"
+  ansible.builtin.command: "/var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}_mac_generation.sh"
   args:
     creates: "/var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}.hwaddr"
   delegate_to: "{{ physical_host }}"
   with_dict: "{{ lxc_container_networks_combined }}"
 
 - name: Gather hardware addresses to be used as facts
-  slurp:
+  ansible.builtin.slurp:
     src: "/var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}.hwaddr"
   changed_when: false
   register: macs
@@ -125,14 +125,14 @@
 # NOTE(cloudnull): To dynamically set the mac address "facts" Ansible line
 #                  format is being used
 - name: Set fixed hardware address fact
-  set_fact: "{{ item.item.value.interface }}_mac_address={{ item.content | b64decode }}" # noqa: no-free-form
+  ansible.builtin.set_fact: "{{ item.item.value.interface }}_mac_address={{ item.content | b64decode }}" # noqa: no-free-form
   with_items:
     - "{{ macs.results }}"
 
 # NOTE(andymccr): We need an index for the interfaces in LXC >= 3 converting
 #                 to a list and using with_indexed_items for this purpose.
 - name: LXC host config for container networks
-  template:
+  ansible.builtin.template:
     src: "container-interface.ini.j2"
     dest: "/var/lib/lxc/{{ inventory_hostname }}/{{ item.1.interface }}.ini"
     owner: "root"
@@ -143,7 +143,7 @@
   delegate_to: "{{ physical_host }}"
 
 - name: Container network includes
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
     line: "lxc.include = /var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}.ini"
     backup: "true"
@@ -153,7 +153,7 @@
   delegate_to: "{{ physical_host }}"
 
 - name: Create wiring script
-  copy:
+  ansible.builtin.copy:
     src: "lxc-veth-wiring.sh"
     dest: "/var/lib/lxc/{{ inventory_hostname }}/lxc-veth-wiring.sh"
     owner: "root"
@@ -163,7 +163,7 @@
 
 # Adds post-down and pre-start hooks
 - name: Drop veth cleanup script
-  template:
+  ansible.builtin.template:
     src: "veth-cleanup.sh.j2"
     dest: "/var/lib/lxc/{{ inventory_hostname }}/veth-cleanup.sh"
     owner: "root"
@@ -172,7 +172,7 @@
   delegate_to: "{{ physical_host }}"
 
 - name: Defines a pre, post, and haltsignal configs
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
     line: "{{ item }}"
     backup: "true"
@@ -183,7 +183,7 @@
   delegate_to: "{{ physical_host }}"
 
 - name: Run veth wiring
-  set_fact:
+  ansible.builtin.set_fact:
     lxc_container_veth_wiring: true
   when:
     - ((not lxc_container_veth_wiring | bool) and
@@ -192,7 +192,7 @@
            (bind_configuration_container is changed))
 
 - name: Run container veth wiring script
-  command: >-
+  ansible.builtin.command: >-
     /var/lib/lxc/{{ inventory_hostname }}/lxc-veth-wiring.sh
     "{{ inventory_hostname }}"
     "{{ lxc_container_network_veth_pair[-15:] }}"
@@ -210,12 +210,12 @@
   delegate_to: "{{ physical_host }}"
 
 - name: Including lxc_container_network tasks
-  include_tasks: "lxc_container_network.yml"
+  ansible.builtin.include_tasks: "lxc_container_network.yml"
 # VETH AND CONNECTIVITY SETTINGS
 
 # SYSTEMD SERVICES
 - name: Run the systemd-service role
-  import_role:
+  ansible.builtin.import_role:
     name: systemd_service
   vars:
     systemd_service_enabled: true
@@ -225,7 +225,7 @@
 
 # ENVIRONMENT AND HOSTNAME SETTINGS
 - name: Add global_environment_variables to environment file
-  blockinfile:
+  ansible.builtin.blockinfile:
     dest: "/etc/environment"
     state: present
     marker: "# {mark} Managed by OpenStack-Ansible"
@@ -234,7 +234,7 @@
   remote_user: root
 
 - name: Create localhost config
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: "/etc/hosts"
     regexp: "^127.0.0.1"
     line: "127.0.0.1 localhost"
@@ -244,14 +244,14 @@
   remote_user: root
 
 - name: Set hostnamectl name
-  command: "/usr/bin/hostnamectl --static --pretty --transient set-hostname {{ intended_hostname }}"
+  ansible.builtin.command: "/usr/bin/hostnamectl --static --pretty --transient set-hostname {{ intended_hostname }}"
   changed_when: false
   vars:
     intended_hostname: "{{ inventory_hostname | replace('_', '-') | quote }}"
   when: ansible_facts['hostname'] != intended_hostname
 
 - name: Generate machine-id
-  command: "systemd-machine-id-setup"
+  ansible.builtin.command: "systemd-machine-id-setup"
   args:
     creates: "/etc/machine-id"
   register: machine_id
@@ -259,13 +259,13 @@
     - Lxc container restart
 
 - name: Ensure the dbus directory exists
-  file:
+  ansible.builtin.file:
     path: "/var/lib/dbus"
     state: "directory"
     mode: "0755"
 
 - name: Create dbus machine-id
-  copy:
+  ansible.builtin.copy:
     src: "/etc/machine-id"
     dest: "/var/lib/dbus/machine-id"
     mode: "0444"
@@ -275,16 +275,16 @@
 - name: Link container journal to host
   block:
     - name: Retrieve the machine-id
-      slurp:
+      ansible.builtin.slurp:
         src: /etc/machine-id
       register: machine_id
 
     - name: Set bind mount for journal linking
-      set_fact:
+      ansible.builtin.set_fact:
         lxc_container_journal_path: "/var/log/journal/{{ (machine_id.content | b64decode).strip() }}"
 
     - name: Ensure journal directory exists
-      file:
+      ansible.builtin.file:
         path: "{{ lxc_container_journal_path }}"
         state: "directory"
         group: "systemd-journal"
@@ -296,7 +296,7 @@
         - "{{ inventory_hostname }}"
 
     - name: Add bind mount configuration to container
-      lineinfile:
+      ansible.builtin.lineinfile:
         dest: "/var/lib/lxc/{{ inventory_hostname }}/config"
         line: "lxc.mount.entry = {{ lxc_container_journal_path }} {{ lxc_container_journal_path.lstrip('/') }} none bind,create=dir 0 0"
         backup: "true"
@@ -307,7 +307,7 @@
 
 # SET CONTAINER FACTS
 - name: Allow the usage of local facts
-  file:
+  ansible.builtin.file:
     path: /etc/ansible/facts.d/
     state: directory
     mode: "0755"
@@ -315,7 +315,7 @@
     - always
 
 - name: Record the container variant deployed
-  ini_file:
+  community.general.ini_file:
     dest: "/etc/ansible/facts.d/openstack_ansible.fact"
     section: lxc
     option: variant

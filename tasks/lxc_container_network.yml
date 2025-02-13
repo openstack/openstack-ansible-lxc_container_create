@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 - name: Run the systemd-networkd role
-  import_role:
+  ansible.builtin.import_role:
     name: systemd_networkd
   vars:
     systemd_run_networkd: true
@@ -21,7 +21,7 @@
     systemd_networks: "{{ _lxc_container_systemd_networks }}"
 
 - name: Create resolved link
-  file:
+  ansible.builtin.file:
     src: "/var/run/systemd/resolve/resolv.conf"
     dest: "/etc/resolv.conf"
     force: true

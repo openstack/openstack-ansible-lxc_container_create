@@ -17,7 +17,7 @@
 # this uses the LXC CLI tools to ensure that we get logging.
 # TODO(odyssey4me): revisit this once the bug is fixed and released
 - name: Stop Container
-  command: >
+  ansible.builtin.command: >
     lxc-stop --name {{ inventory_hostname }}
     --logfile {{ lxc_container_log_path }}/lxc-{{ inventory_hostname }}.log
     --logpriority {{ (debug | bool) | ternary('DEBUG', 'INFO') }}
@@ -38,7 +38,7 @@
 # this uses the LXC CLI tools to ensure that we get logging.
 # TODO(odyssey4me): revisit this once the bug is fixed and released
 - name: Start Container
-  command: >
+  ansible.builtin.command: >
     lxc-start --daemon --name {{ inventory_hostname }}
     --logfile {{ lxc_container_log_path }}/lxc-{{ inventory_hostname }}.log
     --logpriority {{ (debug | bool) | ternary('DEBUG', 'INFO') }}
@@ -50,7 +50,7 @@
   listen: Lxc container restart
 
 - name: Wait for container tmpfiles-setup finish
-  raw: systemctl list-units systemd-tmpfiles-setup.service --no-legend | grep 'exited' >/dev/null
+  ansible.builtin.raw: systemctl list-units systemd-tmpfiles-setup.service --no-legend | grep 'exited' >/dev/null
   register: systemd_tmpfiles
   until: systemd_tmpfiles.rc == 0
   retries: 20
@@ -59,7 +59,7 @@
   listen: Lxc container restart
 
 - name: Enable resolved
-  systemd:
+  ansible.builtin.systemd:
     name: systemd-resolved
     state: started
     enabled: true
@@ -68,7 +68,7 @@
     - lxc_container_enable_resolved | bool
 
 - name: Enable dbus
-  systemd:
+  ansible.builtin.systemd:
     name: dbus
     state: started
     enabled: true

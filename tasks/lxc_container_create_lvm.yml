@@ -32,6 +32,6 @@
     - lxc_container_backing_method != 'copy-on-write'
 
 - name: Including lxc_container_create_cow tasks
-  include_tasks: lxc_container_create_cow.yml
+  ansible.builtin.include_tasks: lxc_container_create_cow.yml
   when:
     - lxc_container_backing_method == 'copy-on-write'

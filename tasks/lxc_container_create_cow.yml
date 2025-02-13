@@ -17,7 +17,7 @@
 # next two tasks do not use the lxc_container module.
 # TODO(odyssey4me): Revisit this once a fix has merged
 - name: Check if container exists
-  command: "lxc-info -n {{ inventory_hostname }}"
+  ansible.builtin.command: "lxc-info -n {{ inventory_hostname }}"
   failed_when: false
   delegate_to: "{{ physical_host }}"
   register: lxc_container_info
@@ -29,7 +29,7 @@
 # '--backingstore'.
 # TODO(odyssey4me): Revisit this once a fix has merged
 - name: Create container (cow)
-  command: >
+  ansible.builtin.command: >
     lxc-copy --snapshot -B {{ lxc_container_backing_store }}
     --name {{ lxc_container_base_name }}
     --newname {{ inventory_hostname }}
@@ -44,7 +44,7 @@
 - name: Set the qgroup limits for btrfs backing stores
   block:
     - name: Set the qgroup size|compression limits on machines
-      command: "btrfs qgroup limit {{ item }} /var/lib/lxc/{{ inventory_hostname }}"
+      ansible.builtin.command: "btrfs qgroup limit {{ item }} /var/lib/lxc/{{ inventory_hostname }}"
       changed_when: false
       delegate_to: "{{ physical_host }}"
       with_items:
@@ -54,7 +54,7 @@
         - not (lxc_host_btrfs_quota_disabled | bool)
   rescue:
     - name: Notice regarding quota system
-      debug:
+      ansible.builtin.debug:
         msg: >-
           There was an error processing the setup of qgroups. Check the system
           to ensure they're available otherwise disable the quota system by

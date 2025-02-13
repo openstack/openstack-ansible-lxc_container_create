@@ -31,7 +31,7 @@
 - name: Set the qgroup limits
   block:
     - name: Set the qgroup size|compression limits on machines
-      command: "btrfs qgroup limit {{ item }} /var/lib/machines/{{ inventory_hostname }}"
+      ansible.builtin.command: "btrfs qgroup limit {{ item }} /var/lib/machines/{{ inventory_hostname }}"
       changed_when: false
       delegate_to: "{{ physical_host }}"
       with_items:
@@ -41,7 +41,7 @@
         - not (lxc_host_btrfs_quota_disabled | bool)
   rescue:
     - name: Notice regarding quota system
-      debug:
+      ansible.builtin.debug:
         msg: >-
           There was an error processing the setup of qgroups. Check the system
           to ensure they're available otherwise disable the quota system by

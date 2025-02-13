@@ -14,7 +14,7 @@
 # limitations under the License.
 
 - name: Container service directories
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     state: "directory"
     mode: "0755"
@@ -26,7 +26,7 @@
   delegate_to: "{{ physical_host }}"
 
 - name: LXC autodev setup
-  template:
+  ansible.builtin.template:
     src: "autodev.j2"
     dest: "/var/lib/lxc/{{ inventory_hostname }}/autodev"
     owner: "root"
@@ -36,10 +36,10 @@
 
 # Run the lxc container creation process based on the backend store type
 - name: "Including lxc_container_create tasks for {{ lxc_container_backing_store }}"
-  include_tasks: "lxc_container_create_{{ lxc_container_backing_store }}.yml"
+  ansible.builtin.include_tasks: "lxc_container_create_{{ lxc_container_backing_store }}.yml"
 
 - name: Check container state
-  command: "lxc-info -n {{ inventory_hostname }} --state"
+  ansible.builtin.command: "lxc-info -n {{ inventory_hostname }} --state"
   changed_when: false
   delegate_to: "{{ physical_host }}"
   register: _lxc_container_state
@@ -51,7 +51,7 @@
 # this uses the LXC CLI tools to ensure that we get logging.
 # TODO(odyssey4me): revisit this once the bug is fixed and released
 - name: Start the container if it is not already running
-  command: >-
+  ansible.builtin.command: >-
     lxc-start
     --daemon
     --name {{ inventory_hostname }}

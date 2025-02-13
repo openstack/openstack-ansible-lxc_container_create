@@ -20,7 +20,7 @@
   delegate_to: "{{ physical_host }}"
 
 - name: Destroy container service directories
-  file:
+  ansible.builtin.file:
     path: "/var/lib/lxc/{{ container_name }}"
     state: "absent"
   delegate_to: "{{ physical_host }}"
