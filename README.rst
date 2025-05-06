@@ -1,15 +1,9 @@
-========================
-Team and repository tags
-========================
-
-.. image:: https://governance.openstack.org/tc/badges/openstack-ansible-lxc_container_create.svg
-    :target: https://governance.openstack.org/tc/reference/tags/index.html
-
-.. Change things from this point on
-
 ======================================
 OpenStack-Ansible LXC container create
 ======================================
+
+Ansible role for creating LXC containers. This role creates several
+directories on the LXC host for use in bind-mounted storage within the container.
 
 Documentation for the project can be found at:
   https://docs.openstack.org/openstack-ansible-lxc_container_create/latest/
