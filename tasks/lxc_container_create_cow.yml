@@ -24,16 +24,14 @@
   tags:
     - skip_ansible_lint
 
-# Due to https://bugs.launchpad.net/ubuntu/+source/lxc/+bug/1591510
-# the '-B' option is used, instead of the more understandable
-# '--backingstore'.
-# TODO(odyssey4me): Revisit this once a fix has merged
+
 - name: Create container (cow)
   ansible.builtin.command: >
-    lxc-copy --snapshot -B {{ lxc_container_backing_store }}
+    lxc-copy --snapshot
+    --backingstorage {{ lxc_container_backing_store }}
     --name {{ lxc_container_base_name }}
     --newname {{ inventory_hostname }}
-    -L {{ properties.container_fs_size | default(lxc_container_fs_size) }}
+    --fssize {{ properties.container_fs_size | default(lxc_container_fs_size) }}
     --logfile {{ lxc_container_log_path }}/lxc-{{ inventory_hostname }}.log
     --logpriority {{ (debug | bool) | ternary('DEBUG', 'INFO') }}
   delegate_to: "{{ physical_host }}"
