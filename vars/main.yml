@@ -19,10 +19,6 @@ lxc_container_map:
   release: "{{ hostvars[physical_host]['ansible_facts']['distribution_major_version'] }}"
 
 lxc_container_default_config_list:
-  - "lxc.start.auto=1"
-  - "lxc.start.delay=15"
-  - "lxc.group=onboot"
-  - "lxc.group=openstack"
   - "lxc.autodev=1"
   - "lxc.hook.autodev=/var/lib/lxc/{{ inventory_hostname }}/autodev"
 
