@@ -153,6 +153,7 @@ lxc_container_networks:
   lxcbr0_address:
     bridge: "{{ lxc_net_bridge | default('lxcbr0') }}"
     bridge_type: "{{ lxc_net_bridge_type | default('linuxbridge') }}"
+    mtu: "{{ lxc_net_mtu | default(1500) }}"
     interface: eth0
     type: veth
 
