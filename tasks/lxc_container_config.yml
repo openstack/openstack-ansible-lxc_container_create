@@ -99,14 +99,6 @@
   delegate_to: "{{ physical_host }}"
   with_dict: "{{ lxc_container_networks_combined }}"
 
-# TODO(noondeadpunk): Remove that in X cycle
-- name: Cleanup old mac scripts
-  ansible.builtin.file:
-    path: "/openstack/{{ inventory_hostname }}/{{ item.value.interface }}_mac_generation.sh"
-    state: absent
-  delegate_to: "{{ physical_host }}"
-  with_dict: "{{ lxc_container_networks_combined }}"
-
 - name: Set define static mac address from an existing interface
   ansible.builtin.command: "/var/lib/lxc/{{ inventory_hostname }}/{{ item.value.interface }}_mac_generation.sh"
   args:
