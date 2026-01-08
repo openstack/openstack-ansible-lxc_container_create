@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 - name: Run the systemd-networkd role
   ansible.builtin.import_role:
     name: systemd_networkd
@@ -20,7 +21,7 @@
     systemd_networkd_distro_packages: []
     systemd_networks: "{{ _lxc_container_systemd_networks }}"
 
-- name: Create resolved link
+- name: Create systemd-resolved link
   ansible.builtin.file:
     src: "/var/run/systemd/resolve/resolv.conf"
     dest: "/etc/resolv.conf"
@@ -30,4 +31,4 @@
     - lxc_container_enable_resolved | bool
   notify:
     - Enable dbus
-    - Enable resolved
+    - Enable systemd-resolved

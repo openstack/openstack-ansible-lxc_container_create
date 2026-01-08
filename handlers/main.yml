@@ -58,7 +58,7 @@
   changed_when: false
   listen: Lxc container restart
 
-- name: Enable resolved
+- name: Enable systemd-resolved
   ansible.builtin.systemd:
     name: systemd-resolved
     state: started
