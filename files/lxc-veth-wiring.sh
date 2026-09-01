@@ -52,9 +52,14 @@ if ip a l "${VETH_PEER}";then
   EXIT=3
 fi
 
-if [ "${BRIDGE}" !=  "openvswitch" ]; then
+if [ "${BRIDGE_TYPE}" != "openvswitch" ]; then
   if ! brctl show "${BRIDGE}" | grep -q "${VETH}"; then
     brctl addif "${BRIDGE}" "${VETH}"
+    EXIT_CODE=3
+  fi
+else
+  if ! ovs-vsctl list-ports "${BRIDGE}" | grep -q "${VETH}"; then
+    ovs-vsctl --may-exist add-port "${BRIDGE}" "${VETH}"
     EXIT_CODE=3
   fi
 fi
